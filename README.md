@@ -2,8 +2,8 @@
 Graphical User Interface for Differential Equations 
 
 
-
-TODO  First:     WARNING think about what to provide to kernel and to keyboard_keys
+TODO:
+      First:     WARNING think about what to provide to kernel and to keyboard_keys
       - Parameters: - introduce ramp or modulation
                     - add plot possibility and according checkbox 
       - PDE : - do this
