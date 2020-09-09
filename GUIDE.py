@@ -470,7 +470,7 @@ class MainWindow(TemplateBaseClass,Modele):
         #print('2',self.docks[relatedTo]['actual_plot'].getViewBox().viewRange()[1])
         self.docks[relatedTo]['region'][dock_name].setRegion(self.docks[dock_name]['actual_plot'].getViewBox().viewRange()[0])
     
-    def update_dock_plots(self):
+    def update_plots(self):
         for dock_name in self.docks.keys():
             if self.docks[dock_name]['type'] == 'plot1D':
                 for variable in self.variables.keys():
@@ -483,15 +483,18 @@ class MainWindow(TemplateBaseClass,Modele):
             elif self.docks[dock_name]['type'] == 'plot2D':
                 # plot the variable names that are pre stored in dock dict
                 for curve2D in self.docks[dock_name]['curve']:
-                    # if variable specified at index 0 is to be plot
+                    # if variables specified, index 0 is to be plot
                     if self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['plot']:
                         self.docks[dock_name]['curve'][curve2D]['curve'].setData(self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['value'],self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][1]]['value'])
             elif self.docks[dock_name]['type'] == 'image':
                 for variable in self.variables.keys():
                     if 'dock' in self.variables[variable].keys():
-                        if dock_name in self.variables[variable]['dock']:
-                            self.docks[dock_name]['actual_plot'].setImage(self.variables[variable]['value'])
-                    
+                        if self.variables[variable]['plot']:
+                            if dock_name in self.variables[variable]['dock']:
+                                self.docks[dock_name]['actual_plot'].setImage(self.variables[variable]['value'])
+        # Update fps_label
+        self.update_fps_label()
+        
     def run_simulator(self):
         # Calculation
         for i in range(self.nstep_update_plot):
@@ -503,7 +506,7 @@ class MainWindow(TemplateBaseClass,Modele):
             
             # Update main plots every self.nstep_update_plot (last occurence of the loop)
             if i==self.nstep_update_plot-1:
-                self.update_dock_plots()
+                self.update_plots()
                     
             # Update time_stamp and parameter dict last (then saved correspond to calculation)
             self.time_stamp[:-1] = self.time_stamp[1:] 
@@ -513,8 +516,6 @@ class MainWindow(TemplateBaseClass,Modele):
             for param in self.params.keys():
                 self.params[param]['value'][:-1] = self.params[param]['value'][1:]
         
-        # Update fps_label
-        self.update_fps_label()
     #################################  END plots update  ###################################
 
     
@@ -798,10 +799,10 @@ class MainWindow(TemplateBaseClass,Modele):
     def update_checkbox_variable(self,variable):
         if self.variables[variable]['checkbox'].isChecked():
             self.variables[variable]['plot'] = True
-            self.update_dock_plots()
+            self.update_plots()
         else:
             self.variables[variable]['plot'] = False
-            # Somewhat duplicate of self.update_dock_plots to clear only once
+            # Somewhat duplicate of self.update_plots to clear only once
             for dock_name in self.docks.keys():
                 if self.docks[dock_name]['type'] == 'plot1D':
                     if 'dock' in self.variables[variable].keys():
@@ -814,8 +815,13 @@ class MainWindow(TemplateBaseClass,Modele):
                         for curve2D in self.docks[dock_name]['curve']:
                             if variable == self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]:
                                 self.docks[dock_name]['curve'][curve2D]['curve'].clear()
-                        #self.update_dock_plots()
-                            
+                elif self.docks[dock_name]['type'] == 'image':
+                    if 'dock' in self.variables[variable].keys():
+                        if dock_name in self.variables[variable]['dock']:
+                            self.docks[dock_name]['actual_plot'].clear()
+                    else:
+                        self.docks[dock_name]['actual_plot'].clear()
+                    
         # Force repainting all the 'actual_plot' (shouldn't be necessary => better being sure)
         self.repaint_all_plots()
     
@@ -845,7 +851,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['slider'].setValue(value)
         # Update observables and plots (works also for spinbox here)
         self.update_observables()
-        self.update_dock_plots()
+        self.update_plots()
 
     def update_nstep_slider(self):
         value = self.ui.nstep_slider.value()
