@@ -1,6 +1,14 @@
 # GUIDE
 Graphical User Interface for Differential Equations 
 
+## Installation:
+
+
+
+Requirements:
+Python: >= 3.7
+pyqtgraph: >= 0.11
+
 
 TODO:
 
