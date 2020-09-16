@@ -6,8 +6,10 @@ This package is made for simulating and interfacing differential equations using
 Note: - only ODE are supported at the moment
 
 ## Installation:
+git clone https://github.com/bgarbin/GUIDE
 
-
+## Usage
+python GUIDE.py -f input.py
 
 ## Requirements:
 - Python: >= 3.7
