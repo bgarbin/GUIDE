@@ -10,8 +10,8 @@ Note: - only ODE are supported at the moment
 
 
 ## Requirements:
-Python: >= 3.7
-pyqtgraph: >= 0.11
+- Python: >= 3.7
+- pyqtgraph: >= 0.11
 
 
 TODO:
