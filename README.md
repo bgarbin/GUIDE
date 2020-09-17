@@ -31,6 +31,7 @@ TODO:
                   - calculation function written in fortran and pre-compiled
                   
       Secondary:
+      - match plot2D colors with toggle
       - toggle for auto y axis
       - better "h" help
       - SAVE: - load state again
