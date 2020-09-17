@@ -19,15 +19,17 @@ python GUIDE.py -f input.py
 TODO:
 
       First:     WARNING think about what to provide to kernel and to keyboard_keys
+      - verify unit of nstep_record and nstep_update_plot
       - Parameters: - introduce ramp or modulation
                     - add plot possibility and according checkbox
                     - add linked parameters ('equation' keyword for parameters)
       - PDE : - do this
               - variable values and re-optimize (direct indexation?)
-      - Parrallelize: - each dock's plot in a remote plot widget
-                      - calculation in a remote worker
-                      - multi process calculation for multi-equations 
-       
+      - Optimize: - each dock's plot in a remote plot widget
+                  - calculation in a remote worker
+                  - multi process calculation for multi-equations 
+                  - calculation function written in fortran and pre-compiled
+                  
       Secondary:
       - toggle for auto y axis
       - better "h" help
