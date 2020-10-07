@@ -36,9 +36,9 @@ class Modele():
             option_name = sys.argv[1]
             assert option_name == '-f', f"option '{option_name}' not understood. Known option is only '-f' with filename as value"
             assert len(sys.argv)>=3, "provide a filename to load parameters from"
-            lib_name = sys.argv[2]
-            if lib_name.endswith('.py'): lib_name = lib_name.rstrip('.py')
-            input_file = importlib.__import__(lib_name)
+            lib_path = sys.argv[2]
+            if lib_path.endswith('.py'): lib_path = lib_path.rstrip('.py')
+            input_file = importlib.import_module(lib_path.replace('/','.'))
         else:
             import model_input as input_file
         
