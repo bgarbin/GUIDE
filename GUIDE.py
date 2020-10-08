@@ -165,7 +165,7 @@ class Modele():
     def update_observables(self):
         for variable in self.variables.keys():
             if self.variables[variable]['observable']:
-                self.obs_computation_result = self.variables[variable]['equation']({key:value['value'] for (key,value) in self.variables.items()},{key:value['value'][-1] for (key,value) in self.params.items()})
+                self.obs_computation_result = self.variables[variable]['equation'](self,{key:value['value'] for (key,value) in self.variables.items()},{key:value['value'][-1] for (key,value) in self.params.items()})
                 if 'calculation_size' in self.variables[variable].keys() and self.variables[variable]['calculation_size']:
                     self.variables[variable]['value'] = self.obs_computation_result
                 else:
@@ -181,7 +181,7 @@ class Modele():
         
         new_variables = {}
         for variable_name in variables.keys():
-            new_variables[variable_name] = variables[variable_name] + self.step_size * self.variables[variable_name]['equation'](variables,params)
+            new_variables[variable_name] = variables[variable_name] + self.step_size * self.variables[variable_name]['equation'](self,variables,params)
                 
         return new_variables
 
@@ -194,25 +194,25 @@ class Modele():
         # Loop for each coefficient on all equations
         coefs_1 = {}
         for variable_name in variables.keys():
-            coefs_1[variable_name] = self.variables[variable_name]['equation'](temp_variables,params)
+            coefs_1[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
 
         coefs_2 = {}
         for variable_name in variables.keys():    # evaluate variables first
             temp_variables[variable_name] = variables[variable_name] + (self.step_size/2.)*coefs_1[variable_name]
         for variable_name in variables.keys():
-            coefs_2[variable_name] = self.variables[variable_name]['equation'](temp_variables,params)
+            coefs_2[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
             
         coefs_3 = {}
         for variable_name in variables.keys():
             temp_variables[variable_name] = variables[variable_name] + (self.step_size/2.)*coefs_2[variable_name]
         for variable_name in variables.keys():
-            coefs_3[variable_name] = self.variables[variable_name]['equation'](temp_variables,params)
+            coefs_3[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
 
         coefs_4 = {}
         for variable_name in variables.keys():
             temp_variables[variable_name] = variables[variable_name] + self.step_size*coefs_3[variable_name]
         for variable_name in variables.keys():
-            coefs_4[variable_name] = self.variables[variable_name]['equation'](temp_variables,params)
+            coefs_4[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
         
         new_variables = {}
         for variable_name in variables.keys():
@@ -526,7 +526,7 @@ class MainWindow(TemplateBaseClass,Modele):
         except: key = event  # allow calling keys programatically
         
         if key in list(self.user_defined_keyPressEvent.keys()):  # Interprete keys defined user file
-            self.user_defined_keyPressEvent[key]({key:value['value'] for (key,value) in self.variables.items()},{key:value['value'][-1] for (key,value) in self.params.items()})
+            self.user_defined_keyPressEvent[key](self,{key:value['value'] for (key,value) in self.variables.items()},{key:value['value'][-1] for (key,value) in self.params.items()})
         elif key == ' ':
             self.toggle_streaming()
         elif key == 'q':
@@ -673,45 +673,47 @@ class MainWindow(TemplateBaseClass,Modele):
 
 
     ################################# BEGIN save ###################################
-    def save(self,record=False):
-        self.filename_to_save_no_ext = None
-        save_dialog = QtGui.QFileDialog()
-        save_dialog.setFileMode(QtGui.QFileDialog.AnyFile)
-        save_dialog.setFilter("Output files (*.png *.xlsx)")
-        save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
-        if save_dialog.exec_():
-            filename_provided = save_dialog.selectedFiles()[0]
-            if '.' in filename_provided:
-                self.filename_to_save_no_ext = filename_provided.rstrip('.'+filename_provided.split('.')[-1])  # remove extension if provided. WARNING if "." is written but no extension is provided
-            else:
-                self.filename_to_save_no_ext = filename_provided
+    def save(self,record=False,filename_to_save_no_ext=None):
+        
+        self.filename_to_save_no_ext = filename_to_save_no_ext
+        if self.filename_to_save_no_ext is None:
+            save_dialog = QtGui.QFileDialog()
+            save_dialog.setFileMode(QtGui.QFileDialog.AnyFile)
+            save_dialog.setFilter("Output files (*.png *.xlsx)")
+            save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
+            if save_dialog.exec_():
+                filename_provided = save_dialog.selectedFiles()[0]
+                if '.' in filename_provided:
+                    self.filename_to_save_no_ext = filename_provided.rstrip('.'+filename_provided.split('.')[-1])  # remove extension if provided. WARNING if "." is written but no extension is provided
+                else:
+                    self.filename_to_save_no_ext = filename_provided
 
-            # Build a dict of the existing conflicting files
-            existing_filename_dict = {}
-            for filename in [self.filename_to_save_no_ext+'.png',self.filename_to_save_no_ext+'.xlsx']:
-                if os.path.exists(filename):
-                    existing_filename_dict[filename] = {}
-                    existing_filename_dict[filename]['name'] = filename.split("/")[-1]
-                    existing_filename_dict[filename]['path'] = filename.rstrip(filename.split("/")[-1])
-                    existing_filename_dict[filename]['path']
-                    
-            # Open a confirmation window if filename_provided exists
-            if len(existing_filename_dict) > 0:
-                file_exists_dialog = QtGui.QMessageBox()
-                file_exists_dialog.setIcon(QtGui.QMessageBox.Warning)
-                file_exists_dialog.setWindowTitle('Warning: file already exists')
-                names = '" and "'.join([existing_filename_dict[key]['name'] for key in existing_filename_dict.keys()])
-                path = existing_filename_dict[list(existing_filename_dict.keys())[0]]['path']
-                if len(existing_filename_dict) > 1: extra_text = ['s','','them','them','their']
-                elif len(existing_filename_dict) == 1: extra_text = ['','s','it','it','its']
-                file_exists_dialog.setText(f'File{extra_text[0]} named "{names}" already exist{extra_text[1]} at location "{path}". Do you want to replace {extra_text[2]}?')
-                file_exists_dialog.setInformativeText(f'Replacing {extra_text[3]} will overwrite {extra_text[4]} contents forever.')
-                file_exists_dialog.setStandardButtons(QtGui.QMessageBox.Save|QtGui.QMessageBox.Cancel)
-                file_exists_dialog.setDefaultButton(QtGui.QMessageBox.Cancel)
-                file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
-                file_exists_dialog.exec_()
-                    
-        save_dialog.close()
+                # Build a dict of the existing conflicting files
+                existing_filename_dict = {}
+                for filename in [self.filename_to_save_no_ext+'.png',self.filename_to_save_no_ext+'.xlsx']:
+                    if os.path.exists(filename):
+                        existing_filename_dict[filename] = {}
+                        existing_filename_dict[filename]['name'] = filename.split("/")[-1]
+                        existing_filename_dict[filename]['path'] = filename.rstrip(filename.split("/")[-1])
+                        existing_filename_dict[filename]['path']
+                        
+                # Open a confirmation window if filename_provided exists
+                if len(existing_filename_dict) > 0:
+                    file_exists_dialog = QtGui.QMessageBox()
+                    file_exists_dialog.setIcon(QtGui.QMessageBox.Warning)
+                    file_exists_dialog.setWindowTitle('Warning: file already exists')
+                    names = '" and "'.join([existing_filename_dict[key]['name'] for key in existing_filename_dict.keys()])
+                    path = existing_filename_dict[list(existing_filename_dict.keys())[0]]['path']
+                    if len(existing_filename_dict) > 1: extra_text = ['s','','them','them','their']
+                    elif len(existing_filename_dict) == 1: extra_text = ['','s','it','it','its']
+                    file_exists_dialog.setText(f'File{extra_text[0]} named "{names}" already exist{extra_text[1]} at location "{path}". Do you want to replace {extra_text[2]}?')
+                    file_exists_dialog.setInformativeText(f'Replacing {extra_text[3]} will overwrite {extra_text[4]} contents forever.')
+                    file_exists_dialog.setStandardButtons(QtGui.QMessageBox.Save|QtGui.QMessageBox.Cancel)
+                    file_exists_dialog.setDefaultButton(QtGui.QMessageBox.Cancel)
+                    file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
+                    file_exists_dialog.exec_()
+                        
+            save_dialog.close()
         
         # if closing the window or chose not to overwrite => no filename
         if self.filename_to_save_no_ext is None: return
