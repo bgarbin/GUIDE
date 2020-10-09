@@ -68,21 +68,21 @@ def load_params():
 
 # BEGIN Declaration of the equations. Automatically recognized pattern are "diff_eq_{variable}" (variables) and "eq_{observable}" (observables); with a name after the pattern that must match the variable/observable's one. Alternatively, you may use custom equation names. You should declare it in the variable/observable dictionnary with keyword "equation".
 
-def diff_eq_A(variables, params):
+def diff_eq_A(ui,variables, params):
     return 1j*(params['delta']*params['tau'] + abs(variables['A'])**2)*variables['A'] - variables['A'] + (1j*params['kappa'] + params['gamma'])*params['tau']*variables['B'] + params['f']
 
-def diff_eq_B(variables, params):
+def diff_eq_B(ui,variables, params):
     return 1j*(params['delta']*params['tau'] + abs(variables['B'])**2)*variables['B'] - variables['B'] + (1j*params['kappa'] + params['gamma'])*params['tau']*variables['A'] + params['f']
 
-def eq_mod_A(variables,params):
+def eq_mod_A(ui,variables,params):
     return abs(variables['A'])**2
-def eq_mod_B(variables,params):
+def eq_mod_B(ui,variables,params):
     return abs(variables['B'])**2
-def eq_mod_A_2(variables,params):
+def eq_mod_A_2(ui,variables,params):
     return variables['mod_A'][-params['npts_PS']:]
-def eq_mod_B_2(variables,params):
+def eq_mod_B_2(ui,variables,params):
     return variables['mod_B'][-params['npts_PS']:]
-def eq_mod_A_2D(variables,params):
+def eq_mod_A_2D(ui,variables,params):
     folding = params['folding']
     nb_rt   = int(len(variables['mod_A'])/params['folding'])
     return np.reshape(variables['mod_A'][-(folding*nb_rt):],(nb_rt,folding))

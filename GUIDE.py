@@ -412,7 +412,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['slider'] = QtGui.QSlider()
             self.params[param]['slider'].setRange(self.params[param]['min']*self.params[param]['slider_conversion_factor'],self.params[param]['max']*self.params[param]['slider_conversion_factor'])
             self.params[param]['slider'].setSingleStep(1)      # integers only
-            self.params[param]['slider'].setOrientation(True)  # horizontale
+            self.params[param]['slider'].setOrientation(QtCore.Qt.Orientation.Horizontal)  # horizontale
             temp.setWidget(2, self.params[param]['slider'])
             self.tree.addTopLevelItem(temp)
             value = np.round(self.params[param]['value'][-1]*self.params[param]['slider_conversion_factor'],self.spinbox_precision) # convert in slider integer unit
