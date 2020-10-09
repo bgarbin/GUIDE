@@ -801,7 +801,6 @@ class MainWindow(TemplateBaseClass,Modele):
     def update_checkbox_variable(self,variable):
         if self.variables[variable]['checkbox'].isChecked():
             self.variables[variable]['plot'] = True
-            self.update_plots()
         else:
             self.variables[variable]['plot'] = False
             # Somewhat duplicate of self.update_plots to clear only once
@@ -825,6 +824,7 @@ class MainWindow(TemplateBaseClass,Modele):
                         self.docks[dock_name]['actual_plot'].clear()
                     
         # Force repainting all the 'actual_plot' (shouldn't be necessary => better being sure)
+        self.update_plots()
         self.repaint_all_plots()
     
     def update_lineedit_variable(self,variable):
