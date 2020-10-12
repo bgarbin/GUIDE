@@ -393,7 +393,7 @@ class MainWindow(TemplateBaseClass,Modele):
         
         self.spinbox_precision = 3
         for param in self.params.keys():
-            self.params[param]['slider_conversion_factor'] = int(self.params[param]['max'] * 1./self.params[param]['step'])   # To test was: 5000 *10000
+            self.params[param]['slider_conversion_factor'] = int(1./self.params[param]['step'])   # To test was: 5000 *10000
             temp = pg.TreeWidgetItem([param])
             # Spin boxes
             self.params[param]['spinbox'] = QtGui.QDoubleSpinBox()
@@ -839,12 +839,13 @@ class MainWindow(TemplateBaseClass,Modele):
             print(f'Input {value if len(value) else "None"} not a {typ.__name__} data type')
 
 
-    def update_spinbox_params(self,param):
+    def update_spinbox_params(self,param,test):
         value = np.round(self.params[param]['slider'].value()/self.params[param]['slider_conversion_factor'],self.spinbox_precision)
         if value <= self.params[param]['max'] and value >= self.params[param]['min']:
             self.params[param]['value'][-1] = value  # For simona
             self.params[param]['spinbox'].setValue(value)
-    def update_slider_params(self,param):
+            
+    def update_slider_params(self,param,test):
         value = self.params[param]['spinbox'].value()*self.params[param]['slider_conversion_factor']
         if isinstance(self.params[param]['step'],int):
             value = int(value)
@@ -885,16 +886,11 @@ class ScrollMessageBox(QtGui.QMessageBox):
 
 
 
-### BEGIN Start the window ###
-
-win = MainWindow()
-
-
-
-
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
-
+    ### BEGIN Start the window ###
+    win = MainWindow()
+    
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
