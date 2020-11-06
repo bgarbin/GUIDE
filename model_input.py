@@ -6,7 +6,7 @@ import numpy as np
 # Main parameters for window
 #     'record_every': number of time_steps one between two consecutive record events
 
-window_params = {'kernel': 'RK4','nstep_update_plot': 100, 'step_size': 0.01, 'array_size': 10000, 'streaming': True, 'record_state':False, 'nstep_record':1, 'window_size':(1200,1000), 'invert_order_obs_var': True}
+window_params = {'kernel': 'RK4','nstep_update_plot': 100, 'step_size': 0.01, 'array_size': 10000, 'streaming': True, 'record_state':False, 'nstep_record':1, 'window_size':(1200,1000), 'invert_order_obs_var': True,'theme':'dark'}
 
 
 # Definition of the plot configuration

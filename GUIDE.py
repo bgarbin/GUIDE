@@ -250,6 +250,24 @@ class MainWindow(TemplateBaseClass,Modele):
         try: self.resize(*self.window_size)
         except: pass
         
+        # Set main theme from self.window_params['theme']
+        if 'theme' in self.__dict__.keys() and self.theme == 'dark':
+            self.palette = self.palette()
+            self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+            self.palette.setColor(QtGui.QPalette.Base, QtGui.QColor(25, 25, 25))
+            self.palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.black)
+            self.palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
+            self.palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+            self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+            self.palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+            self.palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
+            self.palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+            self.palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+            self.setPalette(self.palette)
+        
         # Button, sliders and spinboxes drawn in qtdesigner
         #ICs_button
         self.ui.ICs_button.clicked.connect(self.update_ICs_button)
