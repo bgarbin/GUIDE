@@ -126,6 +126,7 @@ class Modele():
             
         # Load additional keyboard keys if any provided
         self.user_defined_keyPressEvent = input_file.keyboard_keys()
+        if self.user_defined_keyPressEvent is None: self.user_defined_keyPressEvent = {} # if None provided
         system_reserved_keys = [" ", "q", "h", "s", "r", "i", "c"]
         
         for user_defined_key in self.user_defined_keyPressEvent.keys():
@@ -839,20 +840,20 @@ class MainWindow(TemplateBaseClass,Modele):
             print(f'Input {value if len(value) else "None"} not a {typ.__name__} data type')
 
 
-    def update_spinbox_params(self,param,test):
+    def update_spinbox_params(self,param):
         value = np.round(self.params[param]['slider'].value()/self.params[param]['slider_conversion_factor'],self.spinbox_precision)
         if value <= self.params[param]['max'] and value >= self.params[param]['min']:
             self.params[param]['value'][-1] = value  # For simona
             self.params[param]['spinbox'].setValue(value)
             
-    def update_slider_params(self,param,test):
-        value = self.params[param]['spinbox'].value()*self.params[param]['slider_conversion_factor']
+    def update_slider_params(self,param):
+        value = int(np.round(self.params[param]['spinbox'].value()*self.params[param]['slider_conversion_factor']))
         if isinstance(self.params[param]['step'],int):
             value = int(value)
         if value <= self.params[param]['max']*self.params[param]['slider_conversion_factor'] and value >= self.params[param]['min']*self.params[param]['slider_conversion_factor']:
             self.params[param]['value'][-1] = value/self.params[param]['slider_conversion_factor']
             self.params[param]['slider'].setValue(value)
-        # Update observables and plots (works also for spinbox here)
+        # Update observables and plots (works also for spinbox here as setValue calls this func.)
         self.update_observables()
         self.update_plots()
 
