@@ -15,11 +15,12 @@ python GUIDE.py -f input.py
 
 ## Requirements:
 - Python: >= 3.7
-(To install the following simply type: pip install package_name. Note: on't forget to add the option --upgrade if package is already installed.)
+
+(To install any of the following simply type: pip install package_name. Note: on't forget to add the option --upgrade if package is already installed.)
 - pyqtgraph: >= 0.11
 - pyqt5
 - openpyxl
-
+- pandas
 
 TODO:
 
