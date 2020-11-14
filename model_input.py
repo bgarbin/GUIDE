@@ -11,9 +11,9 @@ window_params = {'kernel': 'RK4','nstep_update_plot': 100, 'step_size': 0.01, 'a
 
 # Definition of the plot configuration
 def load_docks():
-    
+
     ''' Returns a dict to be used for plots declaration. Here, we use pyqtgraph docks. Each plot has a dictionnary as "value" with keys: "type" (accepted values: 'plot' and 'image'), "zoomOf" (key name of another dock), "position" (accepted values: 'bottom', 'top', 'left', 'right', 'above', or 'below'), "relativeTo" (optional, key name of another dock; position relative to another dock), size [(xlength,ylength); note that lengths arguments are only a suggestion; docks will still have to fill the entire dock area and obey the limits of their internal widgets], "labels" (dict of position:str), "title" (str). '''
-    
+
     docks = {
     'plot1' : {'type': 'plot1D' , 'position': 'left' , 'size': (500,500), 'labels':{'bottom':'Time (arb. units)','left':'Intensity (arb. units)'}},
     'phase_space' : {'type': 'plot2D', 'position': 'right', 'size': (300,300)},
@@ -21,24 +21,24 @@ def load_docks():
     'plot3' : {'type': 'plot1D', 'position': 'top','relativeTo':'phase_space', 'size': (300,300)},
     'custom_name' : {'type': 'image', 'position': 'above','relativeTo':'plot3', 'size': (300,300)},
     }
-    
+
     return docks
 
 def load_variables():
-    
+
     ''' Returns a dict of the variables. Each variable is a dict with keys: "type" (e.g. np.float64, np.complex128), "init_cond" (type), "plot" (bool, optional default is True), "dock" (list of key name(s) of docks [str] as defined in load_dock function; optional; if not provided, will be ploted on every plot), "equation" (callable, optional default is diff_eq_{variable_name}), "help" (str, to be displayed in help message). Additionnal keys are added internally: "value", "observable" (False), "lineedit", "checkbox". '''
-    
+
     variables = {
     'A'  : {'type': np.complex128, 'init_cond': 0., 'plot': False, 'dock':['plot1','plot2'], 'help':'field in the first cavity'},
     'B'  : {'type': np.complex128, 'init_cond': 0.001, 'plot': False, 'equation': diff_eq_B}
     }
-    
+
     return variables
 
 def load_observables():
-    
+
     ''' Returns a dict of the observables. Similar to variables, observables are added internally to the dictionnary of variables. Each observable is a dict with keys: "type" (e.g. np.float64, np.complex128), "init_cond" (type), "plot" (bool, optional default is True), "dock" (list of key name(s) of docks [str] as defined in load_dock function; optional; if not provided, will be ploted on every plot), "equation" (callable, optional default is eq_{variable_name}), "calculation_size" (bool, whether you want according variable to be only the size of what calculation returns; WARNING: those items won't be stored), "help" (str, to be displayed in help message). Additionnal keys are added internally: "value", "observable" (True), "lineedit", "checkbox". '''
-    
+
     observables = {
     'mod_A' : {'type': np.float64, 'init_cond': 0., 'plot': True, 'dock':['plot1','plot2'], 'help':'modulus square of A'},
     'mod_B' : {'type': np.float64, 'init_cond': 0., 'dock':['plot1','plot2','plot3']},
@@ -48,12 +48,12 @@ def load_observables():
     #'ph_A' : {'type': np.float64, 'init_cond': 0., 'dock':['plot3']},
     #'ph_B' : {'type': np.float64, 'init_cond': 0., 'dock':['plot3']}
     }
-    
+
     return observables
 
 
 def load_params():
-    
+
     ''' Returns a dict of the parameters. Similarly to variables/observables, each parameter has a dictionnary as "value" with keys: "init_cond" (float), "min" (float), "max" (float), step (float or int; WARNING if int this parameter will be an integer), "help" (str, to be displayed in help message). Additionnal keys are added internally: "value", "spinbox", "slider", "slider_conversion_factor". '''
     params = {}
     params['delta'] = {'init_cond': -8., 'min': -10., 'max': 10., 'step': 0.01, 'help':'detuning parameter'}
@@ -63,7 +63,7 @@ def load_params():
     params['tau']   = {'init_cond': 1. , 'min': 0.  , 'max': 10., 'step': 0.01}
     params['npts_PS'] = {'init_cond': 1000 , 'min': 1  , 'max': 2000, 'step': 1}
     params['folding']     = {'init_cond': 100 , 'min': 1  , 'max': 1000, 'step': 1}
-    
+
     return params
 
 # BEGIN Declaration of the equations. Automatically recognized pattern are "diff_eq_{variable}" (variables) and "eq_{observable}" (observables); with a name after the pattern that must match the variable/observable's one. Alternatively, you may use custom equation names. You should declare it in the variable/observable dictionnary with keyword "equation".
@@ -94,11 +94,11 @@ def eq_mod_A_2D(ui,variables,params):
 
 def keyboard_keys():
     """ Returns a dictionnary of user defined keys of form key:callable. System reserved keys: [" ", "q", "h", "s", "r", "i", "c"]. This must return an empty dict if no extra keys. """
-    
+
     keys = {
     't': extra_key,
     }
-    
+
     return keys
     #return {}
 
@@ -108,7 +108,7 @@ def extra_key(variables,params):
     print('end extra key t pressed')
 
 def kernel_my_own(variables,params):
-    
+
     ''' Takes as arguments dicts of variables and params as {'key':value}. Returns a dict of the results with the same form. For now the function name must start with "kernel_" '''
-    
+
     pass

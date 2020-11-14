@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-
-"""
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
@@ -27,9 +24,9 @@ WindowTemplate, TemplateBaseClass = pg.Qt.loadUiType(uiFile)
 
 ### BEGIN Modele class ###
 class Modele():
-    
+
     def __init__(self):
-        
+
         # Allow importing any file provided as argument in the form: python3 GUIDE.py -f model_input
         if len(sys.argv) > 1:
             import importlib
@@ -41,21 +38,21 @@ class Modele():
             input_file = importlib.import_module(lib_path.replace('/','.'))
         else:
             import model_input as input_file
-        
+
         # Loading plots configuration (used in MainWindow class)
         docks = input_file.load_docks()
         setattr(self,'docks',docks)
-        
+
         # Loading window parameters
         window_params = input_file.window_params
         if 'streaming' not in window_params.keys(): self.streaming = True
         for window_param in window_params.keys():
             setattr(self,window_param,window_params[window_param])
-        
+
         # Tracking time
         self.nstep      = 0
         self.time_stamp = np.zeros(self.array_size).astype(np.float64)
-        
+
         # Loading parameters
         params = input_file.load_params()
         setattr(self,'params',params)
@@ -63,13 +60,13 @@ class Modele():
             if isinstance(self.params[param]['step'],int):  typ = int
             else: typ = np.float64
             self.params[param]['value'] = self.params[param]['init_cond'] * np.ones(self.array_size).astype(typ)
-            
+
         # Loading variables
         variables = input_file.load_variables()
         setattr(self,'variables',variables)
         # Loading observables
         observables = input_file.load_observables()
-        setattr(self,'observables',observables)    
+        setattr(self,'observables',observables)
 
         # List as defined in the input file (as observables are added to variables dict)
         list_variables = list(self.variables.keys())
@@ -82,7 +79,7 @@ class Modele():
                 self.variables = dict(self.observables, **self.variables)
             else:
                 self.variables = dict(self.variables, **self.observables)
-        
+
         # Build main dict of variables
         for variable in self.variables.keys():
             self.variables[variable]['value'] = self.variables[variable]['init_cond'] * np.ones(self.array_size).astype(self.variables[variable]['type'])
@@ -93,9 +90,9 @@ class Modele():
 
         # Set default plot to True if none provided
         for variable in self.variables.keys():
-            if 'plot' not in self.variables[variable].keys(): 
+            if 'plot' not in self.variables[variable].keys():
                 self.variables[variable]['plot'] = True
-        
+
         # Loading equations into keyword 'equation' in variables dict
         # 'diff_eq_' and 'eq_' are default patterns for variables and observables respectively
         pattern_variables = 'diff_eq_'
@@ -104,14 +101,14 @@ class Modele():
             assert variable in list_variables, f"Variable {variable} not understood or badly declared"
             if 'equation' in self.variables[variable].keys(): continue
             self.variables[variable]['equation'] = input_file.__dict__[key]
-        
+
         pattern_observables = 'eq_'
         for key in [attr for attr in input_file.__dict__.keys() if attr.startswith(pattern_observables)]:
             variable = key.split(pattern_observables)[-1]
             assert variable in list_observables, f"Observable {variable} not understood or badly declared"
             if 'equation' in self.variables[variable].keys(): continue
             self.variables[variable]['equation'] = input_file.__dict__[key]
-        
+
         # Create dict of the usable kernels
         self.kernels = {}
         pattern_kernels = 'kernel_'
@@ -123,16 +120,16 @@ class Modele():
             kernel = key.split(pattern_kernels)[-1]
             self.kernels[kernel] = {}
             self.kernels[kernel]['value'] = input_file.__dict__[key]
-            
+
         # Load additional keyboard keys if any provided
         self.user_defined_keyPressEvent = input_file.keyboard_keys()
         if self.user_defined_keyPressEvent is None: self.user_defined_keyPressEvent = {} # if None provided
         system_reserved_keys = [" ", "q", "h", "s", "r", "i", "c"]
-        
+
         for user_defined_key in self.user_defined_keyPressEvent.keys():
             assert user_defined_key not in system_reserved_keys, f"User defined key '{user_defined_key}' in system reserved ones {system_reserved_keys}"
-        
-        
+
+
         ########################### BEGIN Assertions input file ###########################
         # 'dock' (variables): Not providing dock_name that doesn't exist
         for variable in self.variables.keys():
@@ -144,15 +141,15 @@ class Modele():
         for variable in self.variables.keys():
             assert 'equation' in self.variables[variable].keys(), f"An equation for variable {variable} must be provided"
         ###########################  END Assertions input file  ###########################
-        
-        
+
+
     def simulator(self):
 
         """ Calculate 1 time step and update arrays """
-            
+
         # Actual computation (pass only the 'value' keyword of each sub-dictionnary)
         self.computation_result_dict = self.kernels[self.kernel]['value']({key:value['value'][-1] for (key,value) in self.variables.items() if not value['observable']},{key:value['value'][-1] for (key,value) in self.params.items()})  # use last value of all variables for the computations of next step
-        
+
         # Update last values to the newest calculated
         for variable in self.variables.keys():
             if not self.variables[variable]['observable']:
@@ -162,7 +159,7 @@ class Modele():
 
         # Evaluate observables
         self.update_observables()
-        
+
     def update_observables(self):
         for variable in self.variables.keys():
             if self.variables[variable]['observable']:
@@ -177,21 +174,21 @@ class Modele():
 
 
     def kernel_euler(self, variables, params):
-        
+
         """ N variables Euler algorithm (A = A + dt * eq_A(params)) """
-        
+
         new_variables = {}
         for variable_name in variables.keys():
             new_variables[variable_name] = variables[variable_name] + self.step_size * self.variables[variable_name]['equation'](self,variables,params)
-                
+
         return new_variables
 
     def kernel_RK4(self, variables, params):
-        
+
         """ N variables RK4 algorithm """
-        
+
         temp_variables = variables.copy()
-        
+
         # Loop for each coefficient on all equations
         coefs_1 = {}
         for variable_name in variables.keys():
@@ -202,7 +199,7 @@ class Modele():
             temp_variables[variable_name] = variables[variable_name] + (self.step_size/2.)*coefs_1[variable_name]
         for variable_name in variables.keys():
             coefs_2[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
-            
+
         coefs_3 = {}
         for variable_name in variables.keys():
             temp_variables[variable_name] = variables[variable_name] + (self.step_size/2.)*coefs_2[variable_name]
@@ -214,42 +211,42 @@ class Modele():
             temp_variables[variable_name] = variables[variable_name] + self.step_size*coefs_3[variable_name]
         for variable_name in variables.keys():
             coefs_4[variable_name] = self.variables[variable_name]['equation'](self,temp_variables,params)
-        
+
         new_variables = {}
         for variable_name in variables.keys():
             new_variables[variable_name] = variables[variable_name] + (self.step_size/6.)*(coefs_1[variable_name]+2*coefs_2[variable_name]+2*coefs_3[variable_name]+coefs_4[variable_name])
 
         return new_variables
-    
-    
-    
+
+
+
 
 
 ### BEGIN MainWindow class ###
 
-class MainWindow(TemplateBaseClass,Modele):  
+class MainWindow(TemplateBaseClass,Modele):
     def __init__(self):
-        
+
         # Create variables and parameters
         Modele.__init__(self)
-        
+
         # Extra useful attributes
         self.fps             = None
         self.lastTime        = pgtime()
         self.colors_dict     = {'b':{'rgb':(31,119,180),'hex':'#1f77b4'},'o':{'rgb':(255,127,14),'hex':'#ff7f0e'},'g':{'rgb':(44,160,44),'hex':'#2ca02c'},'r':{'rgb':(214,39,40),'hex':'#d62728'},'p':{'rgb':(148,103,189),'hex':'#9467bd'},'y':{'rgb':(255,255,0),'hex':'#ffff00'}}
         self.flag_colormaps  = 1
         self.colormaps_list  = ['thermal','yellowy','greyclip','grey','viridis','inferno']
-        
+
         # Load UI
         TemplateBaseClass.__init__(self)
         self.setWindowTitle('Graphical User Interface for Differential Equations (GUIDE)')
-        
+
         # Create the main window
         self.ui = WindowTemplate()
         self.ui.setupUi(self)
         try: self.resize(*self.window_size)
         except: pass
-        
+
         # Set main theme from self.window_params['theme']
         if 'theme' in self.__dict__.keys() and self.theme == 'dark':
             self.palette = self.palette()
@@ -267,7 +264,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
             self.palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
             self.setPalette(self.palette)
-        
+
         # Button, sliders and spinboxes drawn in qtdesigner
         #ICs_button
         self.ui.ICs_button.clicked.connect(self.update_ICs_button)
@@ -286,17 +283,17 @@ class MainWindow(TemplateBaseClass,Modele):
         self.update_fps_label()
         #record_label
         self.ui.record_label.setText(' Rec. ')
-        
+
         ########################## BEGIN figure layout and docks ##########################
         # Dock declaration and initial placement
         self.main_dock_area = self.ui.dock_area
         for dock_name in self.docks.keys():
             self.add_dock(dock_name) # add 'dock' and 'region' keywords into self.docks[dock_name]
-            
+
         # Declaration of the plots in respective docks
         accepted_dock_types = ['plot1D','plot2D','image']
         assert self.docks[dock_name]['type'] in accepted_dock_types, f"Dock type '{self.docks[dock_name]['type']}' not understood. Dock type must be in {accepted_dock_types}"
-        
+
         flag2 = 0
         alpha_factor_linearregion = 60  # 0 -> 255
         for dock_name in self.docks.keys():
@@ -313,7 +310,7 @@ class MainWindow(TemplateBaseClass,Modele):
                     else:
                         self.docks[dock_name]['curve'][variable] = self.docks[dock_name]['actual_plot'].plot(pen=self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['rgb'])
                     flag += 1
-        
+
                 if 'zoomOf' in self.docks[dock_name].keys():
                     relatedTo = self.docks[dock_name]['zoomOf']
                     # Create region and store in its according plot dict
@@ -324,17 +321,17 @@ class MainWindow(TemplateBaseClass,Modele):
                     # Link region and zoom plot
                     self.docks[dock_name]['actual_plot'].sigXRangeChanged.connect(partial(self.update_xzoom_region,dock_name,relatedTo))
                     flag2 += 1
-                    
+
                     ### WARNING  Does not work probably due to an internal bug (waiting for answer)
                     #print('1',self.docks[dock_name]['actual_plot'].getViewBox().viewRange()[1])
                     #print('2',self.docks[relatedTo]['actual_plot'].getViewBox().viewRange()[1])
                     #self.docks[dock_name]['actual_plot'].setYLink(self.docks[relatedTo]['actual_plot'])
                     #print('1',self.docks[dock_name]['actual_plot'].getViewBox().viewRange()[1])
                     #print('2',self.docks[relatedTo]['actual_plot'].getViewBox().viewRange()[1])
-                    
+
                     self.update_zoom_plot(dock_name,relatedTo)
-                
-            
+
+
             elif self.docks[dock_name]['type'] == 'plot2D':
                 self.create_PlotWidget(dock_name)
 
@@ -362,38 +359,38 @@ class MainWindow(TemplateBaseClass,Modele):
                                     print(f"WARNING: check validity of dock_names you provided in the variables/observable dictionnary: {element_variable_dock.keys()}'")
                 if flag == 0:  # Nothing plotted on the 'plot2D'
                     print(f"WARNING: nothing has been plotted on the 'plot2D' dock with name '{dock_name}'")
-                
+
                 if 'zoomOf' in self.docks[dock_name].keys():
                     pass
-                
+
             elif self.docks[dock_name]['type'] == 'image':
                 self.create_ImageView(dock_name)
                 self.docks[dock_name]['actual_plot'].keyPressEvent = self.keyPressEvent
-            
+
         #self.docks[dock_name]['actual_plot'].enableAutoRange('xy', True)
         ########################## END figure layout and docks ##########################
 
 
-        
+
         ############################ BEGIN Trees declaration ############################
         # Variables Tree
         self.tree = self.ui.tree
         self.tree.setColumnCount(3)
         self.tree.keyPressEvent = self.keyPressEvent # allow keys catching for focus on trees
         self.tree.setHeaderLabels(['Variables','IC','plot'])
-        
+
         flag = 0
         for variable in self.variables.keys():
             temp = pg.TreeWidgetItem([variable])
             temp.setForeground(0,QtGui.QBrush(QtGui.QColor(self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['hex'])))
-            
+
             # Create linedit (variables only)
             if not self.variables[variable]['observable']:
                 self.variables[variable]['lineedit'] = QtGui.QLineEdit()
                 temp.setWidget(1, self.variables[variable]['lineedit'])
                 self.variables[variable]['lineedit'].setText(str(self.variables[variable]['value'][-1])) # set initial value
                 self.variables[variable]['lineedit'].returnPressed.connect(partial(self.update_lineedit_variable,variable))
-            
+
             # Create checkbox
             self.variables[variable]['checkbox'] = QtGui.QCheckBox()
             temp.setWidget(2, self.variables[variable]['checkbox'])
@@ -402,14 +399,14 @@ class MainWindow(TemplateBaseClass,Modele):
             self.variables[variable]['checkbox'].keyPressEvent = self.keyPressEvent # connect keys
             self.variables[variable]['checkbox'].stateChanged.connect(partial(self.update_checkbox_variable,variable)) # connect checkbox
             flag += 1
-        
-        
+
+
         # Params Tree
         self.tree_params = self.ui.tree_params
         self.tree_params.setColumnCount(3)
         self.tree_params.keyPressEvent = self.keyPressEvent
         self.tree_params.setHeaderLabels(['Params','value','slider'])
-        
+
         self.spinbox_precision = 3
         for param in self.params.keys():
             self.params[param]['slider_conversion_factor'] = int(1./self.params[param]['step'])   # To test was: 5000 *10000
@@ -429,16 +426,16 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['spinbox'].valueChanged.connect(partial(self.update_slider_params,param))
             # Sliders
             self.params[param]['slider'] = QtGui.QSlider()
-            self.params[param]['slider'].setRange(self.params[param]['min']*self.params[param]['slider_conversion_factor'],self.params[param]['max']*self.params[param]['slider_conversion_factor'])
+            self.params[param]['slider'].setRange(int(self.params[param]['min']*self.params[param]['slider_conversion_factor']),int(self.params[param]['max']*self.params[param]['slider_conversion_factor']))
             self.params[param]['slider'].setSingleStep(1)      # integers only
             self.params[param]['slider'].setOrientation(QtCore.Qt.Orientation.Horizontal)  # horizontale
             temp.setWidget(2, self.params[param]['slider'])
             self.tree.addTopLevelItem(temp)
             value = np.round(self.params[param]['value'][-1]*self.params[param]['slider_conversion_factor'],self.spinbox_precision) # convert in slider integer unit
-            self.params[param]['slider'].setValue(value)
+            self.params[param]['slider'].setValue(int(value))
             self.params[param]['slider'].valueChanged.connect(partial(self.update_spinbox_params,param))
-            
-            
+
+
         # Kernel Tree
         self.tree_kernels = self.ui.tree_kernels
         self.tree_kernels.setColumnCount(2)
@@ -460,35 +457,35 @@ class MainWindow(TemplateBaseClass,Modele):
 
         self.group_buttons_kernels.buttonClicked.connect(self.update_checkbox_kernel)
         #############################  END Trees declaration  ############################
-        
+
         # Start showing the window
         self.show()
-        
+
         # Connect timer to update the figure
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.run_simulator)
         self.timer.start(10)
-        
+
         # Initial window states
         if not self.streaming: self.timer.stop(); self.run_simulator()
         self.update_pause_indicator()
         self.update_record_state_indicator()
-        
+
         # If starts recording from beginning
         if self.record_state:
             self.toggle_record_state()
             self.keyPressEvent("r")
-    
+
         self.t = 0
-    
+
     ################################ BEGIN plots update ###################################
     def update_zoom_plot(self,dock_name,relatedTo):
-        self.docks[dock_name]['actual_plot'].setXRange(*self.docks[relatedTo]['region'][dock_name].getRegion(), padding=0)        
+        self.docks[dock_name]['actual_plot'].setXRange(*self.docks[relatedTo]['region'][dock_name].getRegion(), padding=0)
     def update_xzoom_region(self,dock_name,relatedTo):
         #print('1',self.docks[dock_name]['actual_plot'].getViewBox().viewRange()[1])
         #print('2',self.docks[relatedTo]['actual_plot'].getViewBox().viewRange()[1])
         self.docks[relatedTo]['region'][dock_name].setRegion(self.docks[dock_name]['actual_plot'].getViewBox().viewRange()[0])
-    
+
     def update_plots(self):
         for dock_name in self.docks.keys():
             if self.docks[dock_name]['type'] == 'plot1D':
@@ -513,37 +510,40 @@ class MainWindow(TemplateBaseClass,Modele):
                                 self.docks[dock_name]['actual_plot'].setImage(self.variables[variable]['value'])
         # Update fps_label
         self.update_fps_label()
-        
+
     def run_simulator(self):
         # Calculation
         for i in range(self.nstep_update_plot):
             self.simulator()
-            
+
             # If recording
             if self.record_state and (self.nstep%self.nstep_record == 0):  # record every self.nstep_record
                 self.append_to_dataframe()
-            
+
             # Update main plots every self.nstep_update_plot (last occurence of the loop)
             if i==self.nstep_update_plot-1:
                 self.update_plots()
-                    
+
             # Update time_stamp and parameter dict last (then saved correspond to calculation)
-            self.time_stamp[:-1] = self.time_stamp[1:] 
+            self.time_stamp[:-1] = self.time_stamp[1:]
             self.time_stamp[-1] += self.step_size
             self.nstep          += 1
-                        
+
             for param in self.params.keys():
                 self.params[param]['value'][:-1] = self.params[param]['value'][1:]
-        
+
+            # Fix app freezing on Windows systems  (if event occurs must process it)
+            QtCore.QCoreApplication.processEvents()
+
     #################################  END plots update  ###################################
 
-    
+
     def keyPressEvent(self, event):
         """ Set keyboard interactions """
-        
+
         try: key = event.text()
         except: key = event  # allow calling keys programatically
-        
+
         if key in list(self.user_defined_keyPressEvent.keys()):  # Interprete keys defined user file
             self.user_defined_keyPressEvent[key](self,{key:value['value'] for (key,value) in self.variables.items()},{key:value['value'][-1] for (key,value) in self.params.items()})
         elif key == ' ':
@@ -559,7 +559,7 @@ class MainWindow(TemplateBaseClass,Modele):
             previous_streaming_state = self.streaming
             if previous_streaming_state: self.toggle_streaming() # pause it
             if   key=='s': self.save() # query filename and save initial screenshot
-            elif key=='r': 
+            elif key=='r':
                 if not self.record_state:
                     self.save(record=True)
                 else:
@@ -573,19 +573,19 @@ class MainWindow(TemplateBaseClass,Modele):
         elif key == 'c':
             self.update_images_colormap()
         else:
-            if key is not "" and not event.key() == QtCore.Qt.Key_Return:
+            if key != "" and event.key() != QtCore.Qt.Key_Return:
                 print(f'Keyboard event "{key}" not None')
-    
-    
+
+
     def create_PlotWidget(self,dock_name):
         self.docks[dock_name]['actual_plot'] = pg.PlotWidget(**{key:value for key,value in self.docks[dock_name].items() if key not in ['dock','type','position','relativeTo','size','zoomOf','region']})
         self.docks[dock_name]['dock'].addWidget(self.docks[dock_name]['actual_plot'])
-    
+
     def create_ImageView(self,dock_name):
         # Item for displaying image data
         pl = pg.PlotItem()  # to get axis
         img = pg.ImageItem(axisOrder='row-major')  # to rotate 90 degree
-        
+
         # Create an ImageView Widget
         self.docks[dock_name]['actual_plot'] = pg.ImageView(view=pl,imageItem=img,**{key:value for key,value in self.docks[dock_name].items() if key not in ['dock','type','position','relativeTo','size','zoomOf','region']})
         # Set initial states
@@ -596,30 +596,30 @@ class MainWindow(TemplateBaseClass,Modele):
         #self.docks[dock_name]['actual_plot'].ui.menuBtn.show()
         #self.docks[dock_name]['actual_plot'].ui.histogram.hide()
         #self.docks[dock_name]['actual_plot'].ui.roiBtn.hide()
-        
+
         # Set colormap to be used
         gradient = Gradients[self.colormaps_list[self.flag_colormaps]]
         cmap = pg.ColorMap(pos=[c[0] for c in gradient['ticks']],color=[c[1] for c in gradient['ticks']], mode=gradient['mode'])
         self.docks[dock_name]['actual_plot'].setColorMap(cmap)
-        
+
         self.docks[dock_name]['dock'].addWidget(self.docks[dock_name]['actual_plot'])
-    
+
     def add_dock(self,dock_name):
         ''' Add a dock to the main window '''
         if 'relativeTo' in self.docks[dock_name].keys():
             relativeto_dock_name = self.docks[dock_name]['relativeTo']
             assert 'dock' in self.docks[relativeto_dock_name].keys(), f"Dock '{relativeto_dock_name}' not understood. Docks that are 'relativeTo' another must be defined after it in the dictionnary of docks for consistent behavior"
-        self.docks[dock_name]['region'] = {}  # 'region' key to be used later 
+        self.docks[dock_name]['region'] = {}  # 'region' key to be used later
         self.docks[dock_name]['dock'] = Dock(dock_name, size=self.docks[dock_name]['size'], closable=True)
         self.main_dock_area.addDock(**{key:value for key,value in self.docks[dock_name].items() if key in ['dock','position','relativeTo']})  # key used: 'dock', 'position' and 'relativeTo'
-    
+
     def repaint_all_plots(self):
         for dock_name in self.docks.keys():
             if 'actual_plot' in self.docks[dock_name]:
                 self.docks[dock_name]['actual_plot'].repaint()
-    
+
     def toggle_streaming(self):
-        self.streaming = not(self.streaming) 
+        self.streaming = not(self.streaming)
         self.update_pause_indicator()
     def update_pause_indicator(self):
         if self.streaming:
@@ -631,7 +631,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.ui.run_label.setText('   Stop    ')
             self.timer.stop()
         self.ui.run_label.repaint()
-        
+
     def update_images_colormap(self):
         self.flag_colormaps += 1
         cmap_name = self.colormaps_list[np.mod(self.flag_colormaps,len(self.colormaps_list))]
@@ -641,16 +641,16 @@ class MainWindow(TemplateBaseClass,Modele):
             if self.docks[dock_name]['type'] == 'image':
                 if 'actual_plot' in self.docks[dock_name]:
                     self.docks[dock_name]['actual_plot'].setColorMap(cmap)
-        
+
         self.repaint_all_plots()
-        
+
     def update_record_state_indicator(self):
         if self.record_state:
             self.ui.record_label.setStyleSheet("border: 3px solid %s; border-radius: 22px; background-color : %s; color : %s" %('#000000',self.colors_dict['r']['hex'],(0,0,0)))
         else:
             self.ui.record_label.setStyleSheet("border: 3px solid %s; border-radius: 22px; background-color : %s; color : %s" %('#000000','#000000','#000000'))
         self.ui.record_label.repaint()
-    
+
     def update_ICs_button(self):
         for variable in self.variables.keys():
             if not self.variables[variable]['observable']:
@@ -685,7 +685,7 @@ class MainWindow(TemplateBaseClass,Modele):
                     else:
                         temp += f",  {key}:  {self.params[param][key]}"
             text_help_dialog += [temp]
-        
+
         help_dialog = ScrollMessageBox(text_help_dialog,size_help=(850,600))
         help_dialog.setWindowTitle('Help message')
         help_dialog.exec_()
@@ -693,7 +693,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
     ################################# BEGIN save ###################################
     def save(self,record=False,filename_to_save_no_ext=None):
-        
+
         self.filename_to_save_no_ext = filename_to_save_no_ext
         if self.filename_to_save_no_ext is None:
             save_dialog = QtGui.QFileDialog()
@@ -715,7 +715,7 @@ class MainWindow(TemplateBaseClass,Modele):
                         existing_filename_dict[filename]['name'] = filename.split("/")[-1]
                         existing_filename_dict[filename]['path'] = filename.rstrip(filename.split("/")[-1])
                         existing_filename_dict[filename]['path']
-                        
+
                 # Open a confirmation window if filename_provided exists
                 if len(existing_filename_dict) > 0:
                     file_exists_dialog = QtGui.QMessageBox()
@@ -731,12 +731,12 @@ class MainWindow(TemplateBaseClass,Modele):
                     file_exists_dialog.setDefaultButton(QtGui.QMessageBox.Cancel)
                     file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
                     file_exists_dialog.exec_()
-                        
+
             save_dialog.close()
-        
+
         # if closing the window or chose not to overwrite => no filename
         if self.filename_to_save_no_ext is None: return
-        
+
         # save screenshot
         time.sleep(0.05) # wait for save_dialog to close before the snapshot
         add_text = '_START' if record else ''
@@ -747,7 +747,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.list_to_record            = []
             self.filename_to_record_no_ext = self.filename_to_save_no_ext
             self.toggle_record_state()
-    
+
     def overwrite_buttons(self,event):
         button_pressed = event.text()
         if button_pressed == 'Cancel':
@@ -757,7 +757,7 @@ class MainWindow(TemplateBaseClass,Modele):
     def toggle_record_state(self):
         self.record_state = not(self.record_state)
         self.update_record_state_indicator()
-    
+
     def save_screenshot(self,filename):
         """ Save a screenshot of the main_splitter (the whole "main" window) """
         screenshot = QtGui.QPixmap.grabWindow(self.ui.main_splitter.winId())
@@ -777,7 +777,7 @@ class MainWindow(TemplateBaseClass,Modele):
         writer.save()
         filename = self.filename_to_record_no_ext+'.xlsx'
         print(f'File "{filename}" appended')
-        
+
     def build_dataframe_to_save(self):
         data_frame      = pd.DataFrame()
         data_frame['time'] = self.time_stamp
@@ -800,7 +800,7 @@ class MainWindow(TemplateBaseClass,Modele):
             list_to_data_frame.append(self.params[param]['value'][-1])
         self.list_to_record.append(list_to_data_frame)
     #################################  END save  ###################################
-    
+
     def update_fps_label(self):
         self.time_now = pgtime()
         dt = self.time_now - self.lastTime
@@ -811,12 +811,12 @@ class MainWindow(TemplateBaseClass,Modele):
             s = np.clip(dt*3., 0, 1)
             self.fps = self.fps * (1-s) + (1.0/dt) * s
             self.ui.fps_label.setText('{:05.2f} fps'.format(self.fps))
-            
+
     def update_checkbox_kernel(self):
         for kernel in self.kernels.keys():
             if self.kernels[kernel]['checkbox'].isChecked():
                 self.kernel = kernel
-    
+
     def update_checkbox_variable(self,variable):
         if self.variables[variable]['checkbox'].isChecked():
             self.variables[variable]['plot'] = True
@@ -841,11 +841,11 @@ class MainWindow(TemplateBaseClass,Modele):
                             self.docks[dock_name]['actual_plot'].clear()
                     else:
                         self.docks[dock_name]['actual_plot'].clear()
-                    
+
         # Force repainting all the 'actual_plot' (shouldn't be necessary => better being sure)
         self.update_plots()
         self.repaint_all_plots()
-    
+
     def update_lineedit_variable(self,variable):
         """ Update the variables line edit """
         types = [complex,float,int]
@@ -863,7 +863,7 @@ class MainWindow(TemplateBaseClass,Modele):
         if value <= self.params[param]['max'] and value >= self.params[param]['min']:
             self.params[param]['value'][-1] = value  # For simona
             self.params[param]['spinbox'].setValue(value)
-            
+
     def update_slider_params(self,param):
         value = int(np.round(self.params[param]['spinbox'].value()*self.params[param]['slider_conversion_factor']))
         if isinstance(self.params[param]['step'],int):
@@ -889,7 +889,7 @@ class MainWindow(TemplateBaseClass,Modele):
                 self.update_lineedit_variable(variable)
 
 
-# Convenience Class for message with scroll bar        
+# Convenience Class for message with scroll bar
 class ScrollMessageBox(QtGui.QMessageBox):
    def __init__(self, message_list, size_help=(850,600), *args, **kwargs):
       QtGui.QMessageBox.__init__(self, *args, **kwargs)
@@ -910,6 +910,7 @@ class ScrollMessageBox(QtGui.QMessageBox):
 if __name__ == '__main__':
     ### BEGIN Start the window ###
     win = MainWindow()
-    
+
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        QtGui.QApplication.setStyle("Fusion")
         QtGui.QApplication.instance().exec_()
