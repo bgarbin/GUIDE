@@ -19,7 +19,7 @@ python GUIDE.py -f input.py
 - pyqtgraph: >= 0.11
 - pyqt5
 - openpyxl
-
+- pandas
 
 TODO:
 
