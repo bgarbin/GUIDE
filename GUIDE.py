@@ -249,6 +249,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         # Set main theme from self.window_params['theme']
         if 'theme' in self.__dict__.keys() and self.theme == 'dark':
+            QtGui.QApplication.setStyle("Fusion")
             self.palette = self.palette()
             self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
             self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
@@ -912,5 +913,4 @@ if __name__ == '__main__':
     win = MainWindow()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.setStyle("Fusion")
         QtGui.QApplication.instance().exec_()
