@@ -18,7 +18,7 @@ python GUIDE.py -f input.py
 
 (To install any of the following simply type: pip install package_name. Note: on't forget to add the option --upgrade if package is already installed.)
 - pyqtgraph: >= 0.11
-- pyqt5
+- pyqt5: >= 5.11.2 (WARNING: if upgrading from an older version you seem to have to uninstall manually module sip [pip uninstall sip], version 5.11.2 and older use PyQt5-sip)
 - openpyxl
 - pandas
 
