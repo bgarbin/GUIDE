@@ -13,6 +13,7 @@ from functools import partial
 import time
 from openpyxl import load_workbook
 import pandas as pd
+import time
 
 pg.mkQApp()
 
@@ -535,7 +536,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
             # Fix app freezing on Windows systems  (if event occurs must process it)
             QtCore.QCoreApplication.processEvents()
-
+            
     #################################  END plots update  ###################################
 
 

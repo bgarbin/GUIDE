@@ -59,7 +59,7 @@ def load_params():
     params['delta'] = {'init_cond': -8., 'min': -10., 'max': 10., 'step': 0.01, 'help':'detuning parameter'}
     params['f']     = {'init_cond': 4.8, 'min': 0.  , 'max': 20., 'step': 0.01}
     params['kappa'] = {'init_cond': 2.8, 'min': 0.  , 'max': 10., 'step': 0.01}
-    params['gamma'] = {'init_cond': 0. , 'min': 0.  , 'max': 10., 'step': 0.01}
+    params['gamma'] = {'init_cond': 0. , 'min': -1.  , 'max': 1., 'step': 0.01}
     params['tau']   = {'init_cond': 1. , 'min': 0.  , 'max': 10., 'step': 0.01}
     params['npts_PS'] = {'init_cond': 1000 , 'min': 1  , 'max': 2000, 'step': 1}
     params['folding']     = {'init_cond': 100 , 'min': 1  , 'max': 1000, 'step': 1}
