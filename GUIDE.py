@@ -705,7 +705,7 @@ class MainWindow(TemplateBaseClass,Modele):
             if save_dialog.exec_():
                 filename_provided = save_dialog.selectedFiles()[0]
                 if '.' in filename_provided:
-                    self.filename_to_save_no_ext = filename_provided.rstrip('.'+filename_provided.split('.')[-1])  # remove extension if provided. WARNING if "." is written but no extension is provided
+                    self.filename_to_save_no_ext = filename_provided.rstrip('.')
                 else:
                     self.filename_to_save_no_ext = filename_provided
 
