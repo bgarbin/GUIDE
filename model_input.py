@@ -102,7 +102,7 @@ def keyboard_keys():
     return keys
     #return {}
 
-def extra_key(variables,params):
+def extra_key(ui,variables,params):
     print('begin extra key t pressed')
     print(params)
     print('end extra key t pressed')
