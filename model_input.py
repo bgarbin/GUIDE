@@ -63,7 +63,11 @@ def load_params():
     params['tau']   = {'init_cond': 1. , 'min': 0.  , 'max': 10., 'step': 0.01}
     params['npts_PS'] = {'init_cond': 1000 , 'min': 1  , 'max': 2000, 'step': 1}
     params['folding']     = {'init_cond': 100 , 'min': 1  , 'max': 1000, 'step': 1}
-
+    params['min_scan']   = {'init_cond': 0, 'min': 0., 'max': 500., 'step': 0.01, 'help':'detuning parameter'}
+    params['max_scan']   = {'init_cond': 10, 'min': 0., 'max': 500., 'step': 0.01, 'help':'detuning parameter'}
+    params['step_scan']  = {'init_cond': 0.05, 'min': 0.001, 'max': 10., 'step': 0.001, 'help':'detuning parameter'}
+    params['nstep_scan'] = {'init_cond': 50, 'min': 0, 'max': 500, 'step': 1, 'help':'detuning parameter'}
+    
     return params
 
 # BEGIN Declaration of the equations. Automatically recognized pattern are "diff_eq_{variable}" (variables) and "eq_{observable}" (observables); with a name after the pattern that must match the variable/observable's one. Alternatively, you may use custom equation names. You should declare it in the variable/observable dictionnary with keyword "equation".
@@ -96,16 +100,22 @@ def keyboard_keys():
     """ Returns a dictionnary of user defined keys of form key:callable. System reserved keys: [" ", "q", "h", "s", "r", "i", "c"]. This must return an empty dict if no extra keys. """
 
     keys = {
-    't': extra_key,
+    't': ramp_f,
     }
 
     return keys
     #return {}
 
-def extra_key(ui,variables,params):
-    print('begin extra key t pressed')
-    print(params)
-    print('end extra key t pressed')
+def ramp_f(ui,variables,params):
+    print('begin scanning')
+    
+    for f in np.concatenate((np.arange(params['min_scan'],params['max_scan']+params['step_scan'],params['step_scan']),np.arange(params['max_scan'],params['min_scan']-params['step_scan'],-params['step_scan']))):
+        f = round(f,2)
+        ui.set_param('f',f)
+    
+        ui.run_simulator(params['nstep_scan'])
+    
+    print('end scanning')
 
 def kernel_my_own(variables,params):
 

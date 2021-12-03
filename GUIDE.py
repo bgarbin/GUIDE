@@ -61,7 +61,12 @@ class Modele():
             if isinstance(self.params[param]['step'],int):  typ = int
             else: typ = np.float64
             self.params[param]['value'] = self.params[param]['init_cond'] * np.ones(self.array_size).astype(typ)
-
+        
+        # Set default plot for params to False if none provided
+        for param in self.params.keys():
+            if 'plot' not in self.params[param].keys():
+                self.params[param]['plot'] = False
+                
         # Loading variables
         variables = input_file.load_variables()
         setattr(self,'variables',variables)
@@ -88,8 +93,11 @@ class Modele():
                 self.variables[variable]['observable'] = False
             elif variable in list_observables:
                 self.variables[variable]['observable'] = True
-
-        # Set default plot to True if none provided
+        
+        # Assert no params, variables and observables are called the same
+        assert len(set(list_variables)&set(list_observables))==0 and len(set(list_variables)&set(list(self.params.keys())))==0 and len(set(list(self.params.keys()))&set(list_observables))==0, f"Repeated name for variables, observables and/or parameters"
+        
+        # Set default plot for variables to True if none provided
         for variable in self.variables.keys():
             if 'plot' not in self.variables[variable].keys():
                 self.variables[variable]['plot'] = True
@@ -99,14 +107,18 @@ class Modele():
         pattern_variables = 'diff_eq_'
         for key in [attr for attr in input_file.__dict__.keys() if attr.startswith(pattern_variables)]:
             variable = key.split(pattern_variables)[-1]
-            assert variable in list_variables, f"Variable {variable} not understood or badly declared"
+            if variable not in list_variables:
+                print(f"Warning: Equation for Variable {variable} not used or not understood")
+                continue
             if 'equation' in self.variables[variable].keys(): continue
             self.variables[variable]['equation'] = input_file.__dict__[key]
 
         pattern_observables = 'eq_'
         for key in [attr for attr in input_file.__dict__.keys() if attr.startswith(pattern_observables)]:
             variable = key.split(pattern_observables)[-1]
-            assert variable in list_observables, f"Observable {variable} not understood or badly declared"
+            if variable not in list_observables:
+                print(f"Warning: Equation for Observable {variable} not used or not understood")
+                continue
             if 'equation' in self.variables[variable].keys(): continue
             self.variables[variable]['equation'] = input_file.__dict__[key]
 
@@ -234,7 +246,7 @@ class MainWindow(TemplateBaseClass,Modele):
         # Extra useful attributes
         self.fps             = None
         self.lastTime        = pgtime()
-        self.colors_dict     = {'b':{'rgb':(31,119,180),'hex':'#1f77b4'},'o':{'rgb':(255,127,14),'hex':'#ff7f0e'},'g':{'rgb':(44,160,44),'hex':'#2ca02c'},'r':{'rgb':(214,39,40),'hex':'#d62728'},'p':{'rgb':(148,103,189),'hex':'#9467bd'},'y':{'rgb':(255,255,0),'hex':'#ffff00'}}
+        self.colors_dict     = {'b':{'rgb':(31,119,180),'hex':'#1f77b4'},'o':{'rgb':(255,127,14),'hex':'#ff7f0e'},'g':{'rgb':(44,160,44),'hex':'#2ca02c'},'r':{'rgb':(214,39,40),'hex':'#d62728'},'p':{'rgb':(148,103,189),'hex':'#9467bd'},'y':{'rgb':(255,255,0),'hex':'#ffff00'},'brown':{'rgb':(140,86,75),'hex':'#8c564bq'},'pink':{'rgb':(227,119,194),'hex':'#e377c2'},'grey':{'rgb':(127,127,127),'hex':'#7f7f7f'},'c':{'rgb':(23,190,207),'hex':'#7f7f7f'}}
         self.flag_colormaps  = 1
         self.colormaps_list  = ['thermal','yellowy','greyclip','grey','viridis','inferno']
 
@@ -305,6 +317,8 @@ class MainWindow(TemplateBaseClass,Modele):
                 # Attribution of the curves to the plots
                 flag = 0
                 self.docks[dock_name]['curve'] = {}
+                
+                # Create curves objects for variables, observables and params
                 for variable in self.variables.keys():
                     if 'dock' in self.variables[variable].keys():
                         if dock_name in self.variables[variable]['dock']:
@@ -312,7 +326,14 @@ class MainWindow(TemplateBaseClass,Modele):
                     else:
                         self.docks[dock_name]['curve'][variable] = self.docks[dock_name]['actual_plot'].plot(pen=self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['rgb'])
                     flag += 1
-
+                for param in self.params.keys():
+                    if 'dock' in self.params[param].keys():
+                        if dock_name in self.params[param]['dock']:
+                            self.docks[dock_name]['curve'][param] = self.docks[dock_name]['actual_plot'].plot(pen=self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['rgb'])
+                    else:
+                        self.docks[dock_name]['curve'][param] = self.docks[dock_name]['actual_plot'].plot(pen=self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['rgb'])
+                    flag += 1
+                
                 if 'zoomOf' in self.docks[dock_name].keys():
                     relatedTo = self.docks[dock_name]['zoomOf']
                     # Create region and store in its according plot dict
@@ -352,7 +373,7 @@ class MainWindow(TemplateBaseClass,Modele):
                                         list_variables_to_plot = element_variable_dock[real_dock_name]
                                         # assert variables provided do exist
                                         for variables_to_plot in list_variables_to_plot:
-                                            assert variables_to_plot in self.variables.keys(),f"variable '{variables_to_plot}' in 'dock' key of variable '{variable}' (variables/observables dictionnary) not understood. Must be in {list(self.variables.keys())}"
+                                            assert variables_to_plot in self.variables.keys() or variables_to_plot in self.params.keys(),f"variable '{variables_to_plot}' in 'dock' key of variable '{variable}' (variables/observables/params dictionnary) not understood. Must be in {list(dict(self.variables, **self.params).keys())}"
                                         self.docks[dock_name]['curve'][variable+'_plot2D_'+str(flag)] = {}
                                         self.docks[dock_name]['curve'][variable+'_plot2D_'+str(flag)]['curve'] = self.docks[dock_name]['actual_plot'].plot(pen=self.colors_dict[list(self.colors_dict.keys())[np.mod(flag,len(self.colors_dict))]]['rgb'])
                                         self.docks[dock_name]['curve'][variable+'_plot2D_'+str(flag)]['variables_to_plot'] = list_variables_to_plot
@@ -405,9 +426,9 @@ class MainWindow(TemplateBaseClass,Modele):
 
         # Params Tree
         self.tree_params = self.ui.tree_params
-        self.tree_params.setColumnCount(3)
+        self.tree_params.setColumnCount(4)
         self.tree_params.keyPressEvent = self.keyPressEvent
-        self.tree_params.setHeaderLabels(['Params','value','slider'])
+        self.tree_params.setHeaderLabels(['Params','plot','value','slider'])
 
         self.spinbox_precision = 3
         for param in self.params.keys():
@@ -421,7 +442,7 @@ class MainWindow(TemplateBaseClass,Modele):
                 self.params[param]['spinbox'].setDecimals(0)
             else:
                 self.params[param]['spinbox'].setDecimals(self.spinbox_precision)
-            temp.setWidget(1, self.params[param]['spinbox'])
+            temp.setWidget(2, self.params[param]['spinbox'])
             self.tree_params.addTopLevelItem(temp)
             self.params[param]['spinbox'].setValue(self.params[param]['value'][-1])
             self.params[param]['spinbox'].setKeyboardTracking(False) # emit signal only when enter is pressed
@@ -431,11 +452,19 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['slider'].setRange(int(self.params[param]['min']*self.params[param]['slider_conversion_factor']),int(self.params[param]['max']*self.params[param]['slider_conversion_factor']))
             self.params[param]['slider'].setSingleStep(1)      # integers only
             self.params[param]['slider'].setOrientation(QtCore.Qt.Orientation.Horizontal)  # horizontale
-            temp.setWidget(2, self.params[param]['slider'])
+            temp.setWidget(3, self.params[param]['slider'])
             self.tree.addTopLevelItem(temp)
             value = np.round(self.params[param]['value'][-1]*self.params[param]['slider_conversion_factor'],self.spinbox_precision) # convert in slider integer unit
             self.params[param]['slider'].setValue(int(value))
             self.params[param]['slider'].valueChanged.connect(partial(self.update_spinbox_params,param))
+            # Create checkbox
+            self.params[param]['checkbox'] = QtGui.QCheckBox()
+            temp.setWidget(1, self.params[param]['checkbox'])
+            self.tree.addTopLevelItem(temp)
+            self.params[param]['checkbox'].setChecked(self.params[param]['plot']) # set initial state
+            self.params[param]['checkbox'].keyPressEvent = self.keyPressEvent # connect keys
+            self.params[param]['checkbox'].stateChanged.connect(partial(self.update_checkbox_variable,param)) # connect checkbox
+            flag += 1
 
 
         # Kernel Tree
@@ -498,12 +527,32 @@ class MainWindow(TemplateBaseClass,Modele):
                                 self.docks[dock_name]['curve'][variable].setData(self.variables[variable]['value'])
                         else:
                             self.docks[dock_name]['curve'][variable].setData(self.variables[variable]['value'])
+                for param in self.params.keys():
+                    if self.params[param]['plot']:
+                        if 'dock' in self.params[param].keys():
+                            if dock_name in self.params[param]['dock']:
+                                self.docks[dock_name]['curve'][param].setData(self.params[param]['value'])
+                        else:
+                            self.docks[dock_name]['curve'][param].setData(self.params[param]['value'])
             elif self.docks[dock_name]['type'] == 'plot2D':
                 # plot the variable names that are pre stored in dock dict
                 for curve2D in self.docks[dock_name]['curve']:
-                    # if variables specified, index 0 is to be plot
-                    if self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['plot']:
-                        self.docks[dock_name]['curve'][curve2D]['curve'].setData(self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['value'],self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][1]]['value'])
+                    # if there is a param in the list
+                    list_params_in_variables_provided = [i for i in self.docks[dock_name]['curve'][curve2D]['variables_to_plot'] if i in list(self.params.keys())]
+                    if len(list_params_in_variables_provided)==1:
+                        param_provided = list_params_in_variables_provided[0]
+                        index_param_provided    = self.docks[dock_name]['curve'][curve2D]['variables_to_plot'].index(param_provided)
+                        index_variable_provided = list(set([0,1]) - set([index_param_provided]))
+                        if self.variables[curve2D.split('_plot2D_')[0]]['plot']:
+                            if index_param_provided == 0:
+                                self.docks[dock_name]['curve'][curve2D]['curve'].setData(self.params[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['value'],self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][1]]['value'])
+                            elif index_param_provided == 1:
+                                self.docks[dock_name]['curve'][curve2D]['curve'].setData(self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['value'],self.params[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][1]]['value'])
+                    # no params provided
+                    else:
+                        # if variables specified, index 0 is to be plot
+                        if self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['plot']:
+                            self.docks[dock_name]['curve'][curve2D]['curve'].setData(self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]]['value'],self.variables[self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][1]]['value'])
             elif self.docks[dock_name]['type'] == 'image':
                 for variable in self.variables.keys():
                     if 'dock' in self.variables[variable].keys():
@@ -513,17 +562,19 @@ class MainWindow(TemplateBaseClass,Modele):
         # Update fps_label
         self.update_fps_label()
 
-    def run_simulator(self):
+    def run_simulator(self,nstep_update_plot=None):
+        if not nstep_update_plot: nstep_update_plot = self.nstep_update_plot
+        
         # Calculation
-        for i in range(self.nstep_update_plot):
+        for i in range(nstep_update_plot):
             self.simulator()
 
             # If recording
             if self.record_state and (self.nstep%self.nstep_record == 0):  # record every self.nstep_record
                 self.append_to_dataframe()
 
-            # Update main plots every self.nstep_update_plot (last occurence of the loop)
-            if i==self.nstep_update_plot-1:
+            # Update main plots every nstep_update_plot (last occurence of the loop)
+            if i==nstep_update_plot-1:
                 self.update_plots()
 
             # Update time_stamp and parameter dict last (then saved correspond to calculation)
@@ -820,26 +871,31 @@ class MainWindow(TemplateBaseClass,Modele):
                 self.kernel = kernel
 
     def update_checkbox_variable(self,variable):
-        if self.variables[variable]['checkbox'].isChecked():
-            self.variables[variable]['plot'] = True
+        # Is it an variable/observable or param
+        if variable in self.variables.keys(): dict_to_use = self.variables
+        elif variable in self.params.keys():  dict_to_use = self.params
+        
+        if dict_to_use[variable]['checkbox'].isChecked():
+            dict_to_use[variable]['plot'] = True
         else:
-            self.variables[variable]['plot'] = False
+            dict_to_use[variable]['plot'] = False
             # Somewhat duplicate of self.update_plots to clear only once
             for dock_name in self.docks.keys():
                 if self.docks[dock_name]['type'] == 'plot1D':
-                    if 'dock' in self.variables[variable].keys():
-                        if dock_name in self.variables[variable]['dock']:
+                    if 'dock' in dict_to_use[variable].keys():
+                        if dock_name in dict_to_use[variable]['dock']:
                             self.docks[dock_name]['curve'][variable].clear()
                     else:
                         self.docks[dock_name]['curve'][variable].clear()
                 elif self.docks[dock_name]['type'] == 'plot2D':
-                    if 'dock' in self.variables[variable].keys():
-                        for curve2D in self.docks[dock_name]['curve']:
-                            if variable == self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]:
+                    if 'dock' in dict_to_use[variable].keys():
+                        for curve2D in self.docks[dock_name]['curve']: # variable+'_plot2D_'+str(flag)
+                            #if variable == self.docks[dock_name]['curve'][curve2D]['variables_to_plot'][0]:
+                            if variable == curve2D.split('_plot2D_')[0]: # variable/observable used to create curve2D
                                 self.docks[dock_name]['curve'][curve2D]['curve'].clear()
                 elif self.docks[dock_name]['type'] == 'image':
-                    if 'dock' in self.variables[variable].keys():
-                        if dock_name in self.variables[variable]['dock']:
+                    if 'dock' in dict_to_use[variable].keys():
+                        if dock_name in dict_to_use[variable]['dock']:
                             self.docks[dock_name]['actual_plot'].clear()
                     else:
                         self.docks[dock_name]['actual_plot'].clear()
@@ -889,6 +945,11 @@ class MainWindow(TemplateBaseClass,Modele):
         for variable in self.variables.keys():
             if not self.variables[variable]['observable']:
                 self.update_lineedit_variable(variable)
+                
+    
+    # Scanning utilities
+    def set_param(self,param,value):
+        self.params[param]['slider'].setValue(value*self.params[param]['slider_conversion_factor'])
 
 
 # Convenience Class for message with scroll bar
