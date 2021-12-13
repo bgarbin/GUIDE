@@ -3,7 +3,7 @@
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 from pyqtgraph.dockarea import *
-from pyqtgraph.ptime import time as pgtime
+from time import perf_counter
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
 import sys
@@ -245,7 +245,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         # Extra useful attributes
         self.fps             = None
-        self.lastTime        = pgtime()
+        self.lastTime        = perf_counter()
         self.colors_dict     = {'b':{'rgb':(31,119,180),'hex':'#1f77b4'},'o':{'rgb':(255,127,14),'hex':'#ff7f0e'},'g':{'rgb':(44,160,44),'hex':'#2ca02c'},'r':{'rgb':(214,39,40),'hex':'#d62728'},'p':{'rgb':(148,103,189),'hex':'#9467bd'},'y':{'rgb':(255,255,0),'hex':'#ffff00'},'brown':{'rgb':(140,86,75),'hex':'#8c564bq'},'pink':{'rgb':(227,119,194),'hex':'#e377c2'},'grey':{'rgb':(127,127,127),'hex':'#7f7f7f'},'c':{'rgb':(23,190,207),'hex':'#7f7f7f'}}
         self.flag_colormaps  = 1
         self.colormaps_list  = ['thermal','yellowy','greyclip','grey','viridis','inferno']
@@ -855,7 +855,7 @@ class MainWindow(TemplateBaseClass,Modele):
     #################################  END save  ###################################
 
     def update_fps_label(self):
-        self.time_now = pgtime()
+        self.time_now = perf_counter()
         dt = self.time_now - self.lastTime
         self.lastTime = self.time_now
         if self.fps is None:
