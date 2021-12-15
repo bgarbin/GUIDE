@@ -310,6 +310,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         flag2 = 0
         alpha_factor_linearregion = 60  # 0 -> 255
+        self.warning_observables_docks = []
         for dock_name in self.docks.keys():
             if self.docks[dock_name]['type'] == 'plot1D':
                 self.create_PlotWidget(dock_name) # add 'actual_plot' keyword into self.docks[dock_name]
@@ -379,7 +380,14 @@ class MainWindow(TemplateBaseClass,Modele):
                                         self.docks[dock_name]['curve'][variable+'_plot2D_'+str(flag)]['variables_to_plot'] = list_variables_to_plot
                                     flag += 1
                                 else:
-                                    print(f"WARNING: check validity of dock_names you provided in the variables/observable dictionnary: {element_variable_dock.keys()}'")
+                                    # Check validity of the provided dock_names
+                                    for real_dock_name in element_variable_dock.keys():
+                                        if real_dock_name not in self.docks.keys():
+                                            if [variable,element_variable_dock] not in self.warning_observables_docks:
+                                                self.warning_observables_docks.append([variable,element_variable_dock]) # to throw error only once
+                                                print(f"WARNING: check validity of dock_names you provided in the variables/observable dictionnary: {list(element_variable_dock.keys())}'")
+                                        
+                                        
                 if flag == 0:  # Nothing plotted on the 'plot2D'
                     print(f"WARNING: nothing has been plotted on the 'plot2D' dock with name '{dock_name}'")
 
