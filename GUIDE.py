@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pyqtgraph as pg
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui,QtWidgets
 from pyqtgraph.dockarea import *
 from time import perf_counter
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
@@ -27,7 +27,7 @@ WindowTemplate, TemplateBaseClass = pg.Qt.loadUiType(uiFile)
 class Modele():
 
     def __init__(self):
-
+        
         # Allow importing any file provided as argument in the form: python3 GUIDE.py -f model_input
         if len(sys.argv) > 1:
             import importlib
@@ -240,9 +240,6 @@ class Modele():
 class MainWindow(TemplateBaseClass,Modele):
     def __init__(self):
 
-        # Create variables and parameters
-        Modele.__init__(self)
-
         # Extra useful attributes
         self.fps             = None
         self.lastTime        = perf_counter()
@@ -250,8 +247,11 @@ class MainWindow(TemplateBaseClass,Modele):
         self.flag_colormaps  = 1
         self.colormaps_list  = ['thermal','yellowy','greyclip','grey','viridis','inferno']
 
+        # Create variables and parameters
+        #Modele.__init__(self)  # Commented as called by TemplateBaseClass.__init__(self)
+
         # Load UI
-        TemplateBaseClass.__init__(self)
+        TemplateBaseClass.__init__(self)   # This seems to call Modele.__init__(self) => Commenting the first occurence
         self.setWindowTitle('Graphical User Interface for Differential Equations (GUIDE)')
 
         # Create the main window
@@ -751,7 +751,7 @@ class MainWindow(TemplateBaseClass,Modele):
         if self.filename_to_save_no_ext is None:
             save_dialog = QtGui.QFileDialog()
             save_dialog.setFileMode(QtGui.QFileDialog.AnyFile)
-            save_dialog.setFilter("Output files (*.png *.xlsx)")
+            save_dialog.setNameFilter("Output files (*.png *.xlsx)")
             save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
             if save_dialog.exec_():
                 filename_provided = save_dialog.selectedFiles()[0]
@@ -813,7 +813,8 @@ class MainWindow(TemplateBaseClass,Modele):
 
     def save_screenshot(self,filename):
         """ Save a screenshot of the main_splitter (the whole "main" window) """
-        screenshot = QtGui.QPixmap.grabWindow(self.ui.main_splitter.winId())
+        screen = QtWidgets.QApplication.primaryScreen()
+        screenshot = screen.grabWindow( self.ui.main_splitter.winId() )
         screenshot.save(filename, 'png')
         print(f'File "{filename}" saved')
     def save_dataframe(self,filename):
