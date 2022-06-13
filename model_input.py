@@ -110,7 +110,7 @@ def ramp_f(ui,variables,params):
     print('begin scanning')
     
     for f in np.concatenate((np.arange(params['min_scan'],params['max_scan']+params['step_scan'],params['step_scan']),np.arange(params['max_scan'],params['min_scan']-params['step_scan'],-params['step_scan']))):
-        f = round(f,2)
+        f = round(f,2)  # WARNING precision is limited by the param's "step"
         ui.set_param('f',f)
     
         ui.run_simulator(params['nstep_scan'])

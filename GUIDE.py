@@ -262,7 +262,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         # Set main theme from self.window_params['theme']
         if 'theme' in self.__dict__.keys() and self.theme == 'dark':
-            QtGui.QApplication.setStyle("Fusion")
+            QtWidgets.QApplication.setStyle("Fusion")
             self.palette = self.palette()
             self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
             self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
@@ -417,13 +417,13 @@ class MainWindow(TemplateBaseClass,Modele):
 
             # Create linedit (variables only)
             if not self.variables[variable]['observable']:
-                self.variables[variable]['lineedit'] = QtGui.QLineEdit()
+                self.variables[variable]['lineedit'] = QtWidgets.QLineEdit()
                 temp.setWidget(1, self.variables[variable]['lineedit'])
                 self.variables[variable]['lineedit'].setText(str(self.variables[variable]['value'][-1])) # set initial value
                 self.variables[variable]['lineedit'].returnPressed.connect(partial(self.update_lineedit_variable,variable))
 
             # Create checkbox
-            self.variables[variable]['checkbox'] = QtGui.QCheckBox()
+            self.variables[variable]['checkbox'] = QtWidgets.QCheckBox()
             temp.setWidget(2, self.variables[variable]['checkbox'])
             self.tree.addTopLevelItem(temp)
             self.variables[variable]['checkbox'].setChecked(self.variables[variable]['plot']) # set initial state
@@ -443,7 +443,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['slider_conversion_factor'] = int(1./self.params[param]['step'])   # To test was: 5000 *10000
             temp = pg.TreeWidgetItem([param])
             # Spin boxes
-            self.params[param]['spinbox'] = QtGui.QDoubleSpinBox()
+            self.params[param]['spinbox'] = QtWidgets.QDoubleSpinBox()
             self.params[param]['spinbox'].setRange(self.params[param]['min'],self.params[param]['max'])
             self.params[param]['spinbox'].setSingleStep(self.params[param]['step'])
             if isinstance(self.params[param]['step'],int):
@@ -456,7 +456,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['spinbox'].setKeyboardTracking(False) # emit signal only when enter is pressed
             self.params[param]['spinbox'].valueChanged.connect(partial(self.update_slider_params,param))
             # Sliders
-            self.params[param]['slider'] = QtGui.QSlider()
+            self.params[param]['slider'] = QtWidgets.QSlider()
             self.params[param]['slider'].setRange(int(self.params[param]['min']*self.params[param]['slider_conversion_factor']),int(self.params[param]['max']*self.params[param]['slider_conversion_factor']))
             self.params[param]['slider'].setSingleStep(1)      # integers only
             self.params[param]['slider'].setOrientation(QtCore.Qt.Orientation.Horizontal)  # horizontale
@@ -466,7 +466,7 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['slider'].setValue(int(value))
             self.params[param]['slider'].valueChanged.connect(partial(self.update_spinbox_params,param))
             # Create checkbox
-            self.params[param]['checkbox'] = QtGui.QCheckBox()
+            self.params[param]['checkbox'] = QtWidgets.QCheckBox()
             temp.setWidget(1, self.params[param]['checkbox'])
             self.tree.addTopLevelItem(temp)
             self.params[param]['checkbox'].setChecked(self.params[param]['plot']) # set initial state
@@ -482,10 +482,10 @@ class MainWindow(TemplateBaseClass,Modele):
         self.tree_kernels.setHeaderLabels(['Kernels',''])
 
         # Create a group of buttons to allow "exclusive" behavior
-        self.group_buttons_kernels = QtGui.QButtonGroup()
+        self.group_buttons_kernels = QtWidgets.QButtonGroup()
         self.group_buttons_kernels.setExclusive(True)
         for kernel in self.kernels.keys():
-            self.kernels[kernel]['checkbox'] = QtGui.QCheckBox()
+            self.kernels[kernel]['checkbox'] = QtWidgets.QCheckBox()
             self.group_buttons_kernels.addButton(self.kernels[kernel]['checkbox'], 1)
             temp = pg.TreeWidgetItem([kernel])
             temp.setWidget(1, self.kernels[kernel]['checkbox'])
@@ -660,7 +660,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         # Set colormap to be used
         gradient = Gradients[self.colormaps_list[self.flag_colormaps]]
-        cmap = pg.ColorMap(pos=[c[0] for c in gradient['ticks']],color=[c[1] for c in gradient['ticks']], mode=gradient['mode'])
+        cmap = pg.ColorMap(pos=[c[0] for c in gradient['ticks']],color=[c[1] for c in gradient['ticks']])
         self.docks[dock_name]['actual_plot'].setColorMap(cmap)
 
         self.docks[dock_name]['dock'].addWidget(self.docks[dock_name]['actual_plot'])
@@ -757,8 +757,8 @@ class MainWindow(TemplateBaseClass,Modele):
 
         self.filename_to_save_no_ext = filename_to_save_no_ext
         if self.filename_to_save_no_ext is None:
-            save_dialog = QtGui.QFileDialog()
-            save_dialog.setFileMode(QtGui.QFileDialog.AnyFile)
+            save_dialog = QtWidgets.QFileDialog()
+            save_dialog.setFileMode(QtWidgets.QFileDialog.AnyFile)
             save_dialog.setNameFilter("Output files (*.png *.xlsx)")
             save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
             if save_dialog.exec_():
@@ -779,8 +779,8 @@ class MainWindow(TemplateBaseClass,Modele):
 
                 # Open a confirmation window if filename_provided exists
                 if len(existing_filename_dict) > 0:
-                    file_exists_dialog = QtGui.QMessageBox()
-                    file_exists_dialog.setIcon(QtGui.QMessageBox.Warning)
+                    file_exists_dialog = QtWidgets.QMessageBox()
+                    file_exists_dialog.setIcon(QtWidgets.QMessageBox.Warning)
                     file_exists_dialog.setWindowTitle('Warning: file already exists')
                     names = '" and "'.join([existing_filename_dict[key]['name'] for key in existing_filename_dict.keys()])
                     path = existing_filename_dict[list(existing_filename_dict.keys())[0]]['path']
@@ -788,8 +788,8 @@ class MainWindow(TemplateBaseClass,Modele):
                     elif len(existing_filename_dict) == 1: extra_text = ['','s','it','it','its']
                     file_exists_dialog.setText(f'File{extra_text[0]} named "{names}" already exist{extra_text[1]} at location "{path}". Do you want to replace {extra_text[2]}?')
                     file_exists_dialog.setInformativeText(f'Replacing {extra_text[3]} will overwrite {extra_text[4]} contents forever.')
-                    file_exists_dialog.setStandardButtons(QtGui.QMessageBox.Save|QtGui.QMessageBox.Cancel)
-                    file_exists_dialog.setDefaultButton(QtGui.QMessageBox.Cancel)
+                    file_exists_dialog.setStandardButtons(QtWidgets.QMessageBox.Save|QtWidgets.QMessageBox.Cancel)
+                    file_exists_dialog.setDefaultButton(QtWidgets.QMessageBox.Cancel)
                     file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
                     file_exists_dialog.exec_()
 
@@ -811,9 +811,9 @@ class MainWindow(TemplateBaseClass,Modele):
 
     def overwrite_buttons(self,event):
         button_pressed = event.text()
-        if button_pressed == 'Cancel':
+        if 'Cancel' in button_pressed:
             self.filename_to_save_no_ext = None
-        elif button_pressed == 'Save':
+        elif 'Save' in button_pressed:
             return
     def toggle_record_state(self):
         self.record_state = not(self.record_state)
@@ -958,20 +958,20 @@ class MainWindow(TemplateBaseClass,Modele):
     
     # Scanning utilities
     def set_param(self,param,value):
-        self.params[param]['slider'].setValue(value*self.params[param]['slider_conversion_factor'])
+        self.params[param]['slider'].setValue(int(value*self.params[param]['slider_conversion_factor']))
 
 
 # Convenience Class for message with scroll bar
-class ScrollMessageBox(QtGui.QMessageBox):
+class ScrollMessageBox(QtWidgets.QMessageBox):
    def __init__(self, message_list, size_help=(850,600), *args, **kwargs):
-      QtGui.QMessageBox.__init__(self, *args, **kwargs)
-      scroll = QtGui.QScrollArea(self)
+      QtWidgets.QMessageBox.__init__(self, *args, **kwargs)
+      scroll = QtWidgets.QScrollArea(self)
       scroll.setWidgetResizable(True)
-      self.content = QtGui.QWidget()
+      self.content = QtWidgets.QWidget()
       scroll.setWidget(self.content)
-      lay = QtGui.QVBoxLayout(self.content)
+      lay = QtWidgets.QVBoxLayout(self.content)
       for item in message_list:
-         lay.addWidget(QtGui.QLabel(item, self))
+         lay.addWidget(QtWidgets.QLabel(item, self))
       self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())
       self.setStyleSheet("QScrollArea{min-width:%d px; min-height: %dpx}" %(size_help[0],size_help[1]))
 
@@ -984,4 +984,4 @@ if __name__ == '__main__':
     win = MainWindow()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec_()
