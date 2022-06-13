@@ -645,7 +645,7 @@ class MainWindow(TemplateBaseClass,Modele):
     def create_ImageView(self,dock_name):
         # Item for displaying image data
         pl = pg.PlotItem()  # to get axis
-        img = pg.ImageItem(axisOrder='row-major')  # to rotate 90 degree
+        img = pg.ImageItem(np.zeros((50,50)),axisOrder='row-major')  # to rotate 90 degree
 
         # Create an ImageView Widget
         self.docks[dock_name]['actual_plot'] = pg.ImageView(view=pl,imageItem=img,**{key:value for key,value in self.docks[dock_name].items() if key not in ['dock','type','position','relativeTo','size','zoomOf','region']})
