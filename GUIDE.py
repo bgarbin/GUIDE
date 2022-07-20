@@ -799,7 +799,7 @@ class MainWindow(TemplateBaseClass,Modele):
         if self.filename_to_save_no_ext is None: return
 
         # save screenshot
-        time.sleep(0.05) # wait for save_dialog to close before the snapshot
+        time.sleep(0.1) # wait for save_dialog to close before the snapshot
         add_text = '_START' if record else ''
         self.save_screenshot(self.filename_to_save_no_ext+f"{add_text}.png")
         # save dataframe with variables, observables and parameter values
