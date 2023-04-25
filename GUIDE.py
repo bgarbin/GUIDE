@@ -758,7 +758,7 @@ class MainWindow(TemplateBaseClass,Modele):
         self.filename_to_save_no_ext = filename_to_save_no_ext
         if self.filename_to_save_no_ext is None:
             save_dialog = QtWidgets.QFileDialog()
-            save_dialog.setFileMode(QtWidgets.QFileDialog.AnyFile)
+            save_dialog.setFileMode(QtWidgets.QFileDialog.FileMode.AnyFile)
             save_dialog.setNameFilter("Output files (*.png *.xlsx)")
             save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
             if save_dialog.exec():
@@ -780,7 +780,7 @@ class MainWindow(TemplateBaseClass,Modele):
                 # Open a confirmation window if filename_provided exists
                 if len(existing_filename_dict) > 0:
                     file_exists_dialog = QtWidgets.QMessageBox()
-                    file_exists_dialog.setIcon(QtWidgets.QMessageBox.Warning)
+                    file_exists_dialog.setIcon(QtWidgets.QMessageBox.Icon.Warning)
                     file_exists_dialog.setWindowTitle('Warning: file already exists')
                     names = '" and "'.join([existing_filename_dict[key]['name'] for key in existing_filename_dict.keys()])
                     path = existing_filename_dict[list(existing_filename_dict.keys())[0]]['path']
@@ -788,8 +788,8 @@ class MainWindow(TemplateBaseClass,Modele):
                     elif len(existing_filename_dict) == 1: extra_text = ['','s','it','it','its']
                     file_exists_dialog.setText(f'File{extra_text[0]} named "{names}" already exist{extra_text[1]} at location "{path}". Do you want to replace {extra_text[2]}?')
                     file_exists_dialog.setInformativeText(f'Replacing {extra_text[3]} will overwrite {extra_text[4]} contents forever.')
-                    file_exists_dialog.setStandardButtons(QtWidgets.QMessageBox.Save|QtWidgets.QMessageBox.Cancel)
-                    file_exists_dialog.setDefaultButton(QtWidgets.QMessageBox.Cancel)
+                    file_exists_dialog.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Save|QtWidgets.QMessageBox.StandardButton.Cancel)
+                    file_exists_dialog.setDefaultButton(QtWidgets.QMessageBox.StandardButton.Cancel)
                     file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
                     file_exists_dialog.exec()
 
@@ -830,14 +830,14 @@ class MainWindow(TemplateBaseClass,Modele):
         data_frame.to_excel(filename,index=False)
         print(f'File "{filename}" saved')
     def save_appended_dataframe(self,sheet_name='Sheet1'):
-        writer = pd.ExcelWriter(self.filename_to_record_no_ext+'.xlsx', engine='openpyxl')
-        writer.book = load_workbook(self.filename_to_record_no_ext+'.xlsx')
-        startrow = writer.book[sheet_name].max_row
-        writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
+        """ Append to existing data frame """
+        filename                  = self.filename_to_record_no_ext+'.xlsx'
         self.data_frame_to_record = pd.DataFrame(self.list_to_record)
-        self.data_frame_to_record.to_excel(writer, sheet_name,header=False,index=False, startrow=startrow)
-        writer.save()
-        filename = self.filename_to_record_no_ext+'.xlsx'
+        
+        with pd.ExcelWriter(filename,engine='openpyxl',mode='a',if_sheet_exists='overlay') as writer:
+            reader = pd.read_excel(filename)
+            self.data_frame_to_record.to_excel(writer,header=False,index=False, startrow=reader.shape[0]+1)
+
         print(f'File "{filename}" appended')
 
     def build_dataframe_to_save(self):

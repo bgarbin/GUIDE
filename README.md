@@ -14,12 +14,12 @@ git clone https://github.com/bgarbin/GUIDE
 python GUIDE.py -f input.py
 
 ## Requirements:
-- Python: >= 3.7
+- Python: >= 3.9
 
 (To install any of the following simply type: pip install package_name. Note: on't forget to add the option --upgrade if package is already installed.)
 - pyqtgraph: >= 0.13.1
-- openpyxl
-- pandas
+- openpyxl:  >= 3.0.9
+- pandas:    >= 1.5.3
 
 TODO:
 
