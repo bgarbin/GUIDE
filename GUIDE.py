@@ -634,7 +634,7 @@ class MainWindow(TemplateBaseClass,Modele):
         elif key == 'c':
             self.update_images_colormap()
         else:
-            if key != "" and event.key() != QtCore.Qt.Key_Return:
+            if key != "" and event.key() != QtCore.Qt.Key.Key_Return:
                 print(f'Keyboard event "{key}" not None')
 
 
@@ -749,7 +749,7 @@ class MainWindow(TemplateBaseClass,Modele):
 
         help_dialog = ScrollMessageBox(text_help_dialog,size_help=(850,600))
         help_dialog.setWindowTitle('Help message')
-        help_dialog.exec_()
+        help_dialog.exec()
 
 
     ################################# BEGIN save ###################################
@@ -761,7 +761,7 @@ class MainWindow(TemplateBaseClass,Modele):
             save_dialog.setFileMode(QtWidgets.QFileDialog.AnyFile)
             save_dialog.setNameFilter("Output files (*.png *.xlsx)")
             save_dialog.setWindowTitle("Saving files: screenshot, traces and window state")
-            if save_dialog.exec_():
+            if save_dialog.exec():
                 filename_provided = save_dialog.selectedFiles()[0]
                 if '.' in filename_provided:
                     self.filename_to_save_no_ext = filename_provided.rstrip('.')
@@ -791,7 +791,7 @@ class MainWindow(TemplateBaseClass,Modele):
                     file_exists_dialog.setStandardButtons(QtWidgets.QMessageBox.Save|QtWidgets.QMessageBox.Cancel)
                     file_exists_dialog.setDefaultButton(QtWidgets.QMessageBox.Cancel)
                     file_exists_dialog.buttonClicked.connect(self.overwrite_buttons)
-                    file_exists_dialog.exec_()
+                    file_exists_dialog.exec()
 
             save_dialog.close()
 
@@ -910,9 +910,11 @@ class MainWindow(TemplateBaseClass,Modele):
                         self.docks[dock_name]['actual_plot'].clear()
 
         # Force repainting all the 'actual_plot' (shouldn't be necessary => better being sure)
+        print('yes')
         self.update_plots()
         self.repaint_all_plots()
-
+        print('yes2')
+        
     def update_lineedit_variable(self,variable):
         """ Update the variables line edit """
         types = [complex,float,int]
