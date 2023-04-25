@@ -17,8 +17,7 @@ python GUIDE.py -f input.py
 - Python: >= 3.7
 
 (To install any of the following simply type: pip install package_name. Note: on't forget to add the option --upgrade if package is already installed.)
-- pyqtgraph: >= 0.11
-- pyqt5: >= 5.11.2 (WARNING: if upgrading from an older version you seem to have to uninstall manually module sip [pip uninstall sip], version 5.11.2 and older use PyQt5-sip)
+- pyqtgraph: >= 0.13.1
 - openpyxl
 - pandas
 
@@ -26,9 +25,10 @@ TODO:
 
       First:     WARNING think about what to provide to kernel and to keyboard_keys
       - verify unit of nstep_record and nstep_update_plot
-      - Parameters: - introduce ramp or modulation
-                    - add plot possibility and according checkbox
+      - Parameters: - introduce ramp or modulation                                    (done)
+                    - add plot possibility and according checkbox                     (done)
                     - add linked parameters ('equation' keyword for parameters)
+                    - optimize parameter and variable array update after calculations
       - PDE : - do this
               - variable values and re-optimize (direct indexation?)
       - Optimize: - each dock's plot in a remote plot widget

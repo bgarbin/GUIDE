@@ -264,19 +264,19 @@ class MainWindow(TemplateBaseClass,Modele):
         if 'theme' in self.__dict__.keys() and self.theme == 'dark':
             QtWidgets.QApplication.setStyle("Fusion")
             self.palette = self.palette()
-            self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
-            self.palette.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-            self.palette.setColor(QtGui.QPalette.Base, QtGui.QColor(25, 25, 25))
-            self.palette.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
-            self.palette.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.black)
-            self.palette.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
-            self.palette.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-            self.palette.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
-            self.palette.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-            self.palette.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-            self.palette.setColor(QtGui.QPalette.Link, QtGui.QColor(42, 130, 218))
-            self.palette.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
-            self.palette.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.black)
+            self.palette.setColor(QtGui.QPalette.ColorRole.Window, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.ColorRole.WindowText, QtCore.Qt.GlobalColor.white)
+            self.palette.setColor(QtGui.QPalette.ColorRole.Base, QtGui.QColor(25, 25, 25))
+            self.palette.setColor(QtGui.QPalette.ColorRole.AlternateBase, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.ColorRole.ToolTipBase, QtCore.Qt.GlobalColor.black)
+            self.palette.setColor(QtGui.QPalette.ColorRole.ToolTipText, QtCore.Qt.GlobalColor.white)
+            self.palette.setColor(QtGui.QPalette.ColorRole.Text, QtCore.Qt.GlobalColor.white)
+            self.palette.setColor(QtGui.QPalette.ColorRole.Button, QtGui.QColor(53, 53, 53))
+            self.palette.setColor(QtGui.QPalette.ColorRole.ButtonText, QtCore.Qt.GlobalColor.white)
+            self.palette.setColor(QtGui.QPalette.ColorRole.BrightText, QtCore.Qt.GlobalColor.red)
+            self.palette.setColor(QtGui.QPalette.ColorRole.Link, QtGui.QColor(42, 130, 218))
+            self.palette.setColor(QtGui.QPalette.ColorRole.Highlight, QtGui.QColor(42, 130, 218))
+            self.palette.setColor(QtGui.QPalette.ColorRole.HighlightedText, QtCore.Qt.GlobalColor.black)
             self.setPalette(self.palette)
 
         # Button, sliders and spinboxes drawn in qtdesigner
@@ -984,4 +984,4 @@ if __name__ == '__main__':
     win = MainWindow()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtWidgets.QApplication.instance().exec_()
+        QtWidgets.QApplication.instance().exec()
