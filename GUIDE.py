@@ -457,7 +457,11 @@ class MainWindow(TemplateBaseClass,Modele):
             self.params[param]['spinbox'].valueChanged.connect(partial(self.update_slider_params,param))
             # Sliders
             self.params[param]['slider'] = QtWidgets.QSlider()
-            self.params[param]['slider'].setRange(int(self.params[param]['min']*self.params[param]['slider_conversion_factor']),int(self.params[param]['max']*self.params[param]['slider_conversion_factor']))
+            try:
+                self.params[param]['slider'].setRange(int(self.params[param]['min']*self.params[param]['slider_conversion_factor']),int(self.params[param]['max']*self.params[param]['slider_conversion_factor']))
+            except OverflowError:
+                print(f'Resolution and values problem on param: {param}')
+                sys.exit()
             self.params[param]['slider'].setSingleStep(1)      # integers only
             self.params[param]['slider'].setOrientation(QtCore.Qt.Orientation.Horizontal)  # horizontale
             temp.setWidget(3, self.params[param]['slider'])
